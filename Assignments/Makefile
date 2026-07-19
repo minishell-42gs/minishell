@@ -6,7 +6,7 @@
 #    By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/07/19 15:46:40 by taegokim         ###   ########.fr        #
+#    Updated: 2026/07/19 16:38:07 by taegokim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,8 +23,8 @@ INCLUDES := -I$(INCS_DIR) -I$(LIBFT_DIR)/includes
 HEADERS := $(addprefix $(INCS_DIR)/, $(addsuffix .h, $(MODULES)))
 
 SRC_DIR := src
-SRCS := $(foreach dir, $(MODULES), $(wildcard $(SRC_DIR)/$(dir)/*.c))
-SRCS += $(addprefix $(SRC_DIR)/, main.c)
+SRCS := $(SRC_DIR)/main.c \
+	$(SRC_DIR)/lexer/lexer.c \
 
 OBJ_DIR := build
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
