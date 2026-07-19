@@ -6,7 +6,7 @@
 #    By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/07/19 16:38:07 by taegokim         ###   ########.fr        #
+#    Updated: 2026/07/19 18:36:26 by taegokim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,20 +19,20 @@ CFLAGS := -Wall -Wextra -Werror
 MODULES := lexer parser util
 
 INCS_DIR := include
-INCLUDES := -I$(INCS_DIR) -I$(LIBFT_DIR)/includes
+LIBFT_DIR := libft
+OBJ_DIR := build
+SRC_DIR := src
+
+INCLUDES := -I$(INCS_DIR) -I$(LIBFT_DIR)
 HEADERS := $(addprefix $(INCS_DIR)/, $(addsuffix .h, $(MODULES)))
 
-SRC_DIR := src
 SRCS := $(SRC_DIR)/main.c \
 	$(SRC_DIR)/lexer/lexer.c \
 
-OBJ_DIR := build
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
-LIBFT_DIR := ./libft
 LIBFT_NAME := libft.a
 LIBFT := $(LIBFT_DIR)/$(LIBFT_NAME)
-
 
 all: $(LIBFT) $(NAME)
 
@@ -40,8 +40,10 @@ $(OBJ_DIR)/%.o: %.c $(HEADERS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-$(LIBFT):
+$(LIBFT): FORCE
 	$(MAKE) -C $(LIBFT_DIR)
+
+FORCE:
 
 $(NAME): $(OBJS) $(LIBFT)
 	$(CC) $(CFLAGS) $(OBJS) $(LIBFT) -o $(NAME)
@@ -56,4 +58,4 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+.PHONY: all clean fclean re FORCE
