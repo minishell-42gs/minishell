@@ -1,6 +1,7 @@
 # Editor
 .obsidian/
 .claude/
+.claudian/
 
 # macOS
 .DS_Store
