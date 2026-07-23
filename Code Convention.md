@@ -1,16 +1,16 @@
 
 # Summary
 
-| 요소            | 규칙                                                            | 예시                                                                              |
-| ------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `types.h`     | #TBU                                                          | `typedef struct s_cmd t_cmd;`<br>`typedef enum e_status { OK, FAIL } t_status;` |
-| `struct` = 객체 | 데이터 필드 + 함수 포인터(메서드)                                          | `t_status (*run)(t_cmd_mgr *this);`                                             |
+| 요소           | 규칙                       | 예시               |
+| ------------- | ------------------------- | ----------------- |
+| `types.h`     | 공통으로 사용되는 types를 정의한다.                                                           | typedef long long t_ll;  <br> typedef enum e_status { OK, FAIL } t_status; |
+| `struct` = 객체 | 데이터 필드 + 함수 포인터 (메서드)                                       <br> 단, norminitte 버그가 발생할 경우 `반환형 객체이름_메서드(인자)` 형태로 선언하고 상단에 주석으로 남긴다.    | `t_status (*run)(t_cmd_mgr *this); ` <br> t_error app_run(int argc, char **argv)                                             |
 | `this` 파라미터   | 모든 메서드의 첫 번째 인자는 `this`(self)                                 | `run_impl(t_cmd *this)`                                                         |
 | 생성자           | `xxx_init(this, ...)` 형태. 함수 포인터 연결 및 필드 초기화, `t_status` 반환   | `cmd_init(...)`                                                                 |
 | 소멸자           | `destroy` 함수 포인터를 통해 객체의 생명주기 관리                              | `this->destroy(this);`                                                          |
 | 구현 함수         | `static` + `_impl` 접미사 사용, 생성자에서 함수 포인터에 할당                   | `run_impl`, `app_run_impl`                                                      |
 | 에러 처리         | 중앙 `report_error()` + `ERR_*` enum 사용, 필요 시 콤마 연산자로 정리        | `return (free_split(x), report_error(...));`                                    |
-| 파일 배치         | `include/`(헤더), `src/`(구현), `util/`(헬퍼). 큰 모듈은 `_impl` 파일로 분리 | `fd_factory.c` + `fd_factory_file_impl.c`                                       |
+| 파일 배치         | `include/`(헤더), `src/`(구현), `util/`(헬퍼). 큰 모듈은 `_impl` 파일로 분리 <br> 모듈(객체)는 src 하위에 폴더로 구분된다. | include/ <br>- fd_factory.h <br> - parser.h<br>...<br>src/<br>- fd_factory/ <br>-- fd_factory_calc.c <br>-- fd_factory_impl.c <br> -- update_fd.c<br>-- ...<br> - parser/<br>-- parser.c <br> -- pre_parse.c                                     |
 | 리턴 규약         | 성공/실패는 `t_status`(`OK`/`FAIL`)로 통일                            | `return (OK);` / `return (FAIL);`                                               |
 
 # Details
@@ -41,22 +41,15 @@ int	main(int argc, char **argv, char **envp)
 
 ---
 
-## 1. `types.h` — 타입 집약소 #TBU
+## 1. `types.h` — 타입 집약소
 
-모든 struct의 forward typedef와 공용 enum을 **여기 한 곳에만** 둔다.
+모든 공용 enum을 **여기 한 곳에만** 둔다.
 각 헤더는 `struct s_xxx { ... }` **정의**만 갖고, `t_xxx` 별칭은 이 파일이 책임진다.
 → 헤더끼리 서로 참조해도 순환 include가 안 생긴다.
 
 ```c
 #ifndef TYPES_H
 # define TYPES_H
-
-typedef struct s_parser		t_parser;
-typedef struct s_cmd		t_cmd;
-typedef struct s_cmd_mgr	t_cmd_mgr;
-typedef struct s_pipe_mgr	t_pipe_mgr;
-typedef struct s_fd_factory	t_fd_factory;
-typedef struct s_app		t_app;
 
 typedef enum e_status
 {
@@ -179,12 +172,21 @@ if (!this->argv[0])
 ```
 include/     헤더 (struct 정의 + xxx_init 프로토타입)
   types.h    forward typedef + 공용 enum 집약
+  parser.h
+  lexer.h
 src/         구현 (.c, 모듈당 1파일, 크면 _impl 파일로 분리)
+  parser/
+	parser.c
+	parse_impl.c
+	...
+  lexer/
+	lexer.c
+	lexer_impl.c
+	...
 util/        범용 헬퍼 (free_split, create_cmd_path 등)
 libft/       libft (+ 필요 시 ft_printf, get_next_line)
 ```
 
-- 큰 모듈은 파일을 쪼갠다: `fd_factory.c` + `fd_factory_file_impl.c` + `fd_factory_heredoc_impl.c`.
 
 ---
 
