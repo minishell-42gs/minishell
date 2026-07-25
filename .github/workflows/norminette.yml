@@ -1,0 +1,38 @@
+name: Minishell CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  norminette:
+    name: Norminette Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: Norminette 설치
+        run: python3 -m pip install norminette
+
+      - name: Norm 검사
+        run: norminette Assignments
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: make 확인
+        run: make -C Assignments fclean && make -C Assignments
