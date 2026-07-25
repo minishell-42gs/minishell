@@ -6,7 +6,7 @@
 #    By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/07/19 18:36:26 by taegokim         ###   ########.fr        #
+#    Updated: 2026/07/25 09:54:44 by taegokim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,9 +26,7 @@ SRC_DIR := src
 INCLUDES := -I$(INCS_DIR) -I$(LIBFT_DIR)
 HEADERS := $(addprefix $(INCS_DIR)/, $(addsuffix .h, $(MODULES)))
 
-SRCS := $(SRC_DIR)/main.c \
-	$(SRC_DIR)/lexer/lexer.c \
-
+SRCS := $(SRC_DIR)/main.c
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
 LIBFT_NAME := libft.a
