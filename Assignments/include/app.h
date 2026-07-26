@@ -1,25 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   app.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/19 00:00:00 by                   #+#    #+#             */
-/*   Updated: 2026/07/25 14:22:23 by hyuckwon         ###   ########.fr       */
+/*   Created: 2026/07/25 13:02:05 by hyuckwon          #+#    #+#             */
+/*   Updated: 2026/07/25 14:44:10 by hyuckwon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include "app.h"
-#include "libft.h"
+#ifndef APP_H
+# define APP_H
+# include "status.h"
 
-int	main(int argc, char **argv, char **envp)
+typedef struct s_app	t_app;
+
+struct s_app
 {
-	t_app	app;
+	char		**envp;
+	int			last_status;
+	t_status	(*run)(t_app * this);
+	void		(*destroy)(t_app *this);
+};
 
-	ft_memset(&app, 0, sizeof(t_app));
-	app_init(&app, argc, argv, envp);
-	printf("minishell: hello, we code\n");
-	return (0);
-}
+t_status	app_init(t_app *this, int argc, char **argv, char **envp);
+
+#endif

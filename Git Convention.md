@@ -35,13 +35,14 @@
 
 |Type|설명|예시|
 |---|---|---|
-|feat|새로운 기능 추가|feat: 로그인 API 추가|
-|fix|버그 수정|fix: 널 포인터 예외 수정|
-|docs|문서 작성 및 수정|docs: README 수정|
-|refactor|기능 변경 없는 코드 개선|refactor: 파서 로직 분리|
-|test|테스트 코드 추가 및 수정|test: 파서 테스트 추가|
-|chore|설정, 의존성 등 기타 작업|chore: gitignore 수정|
-|style|코드 스타일 수정|style: 코드 포맷팅|
-|perf|성능 개선|perf: 검색 속도 개선|
-|build|빌드 시스템 변경|build: Makefile 수정|
-|revert|이전 커밋 되돌리기|revert: 로그인 기능 되돌리기|
+|feat|새로운 기능 추가|feat: add login API|
+|fix|버그 수정|fix: fix null pointer exception|
+|docs|문서 작성 및 수정|docs: update README|
+|refactor|기능 변경 없는 코드 개선|refactor: split parser logic|
+|test|테스트 코드 추가 및 수정|test: add parser tests|
+|chore|설정, 의존성 등 기타 작업|chore: update gitignore|
+|style|코드 스타일 수정|style: format code|
+|perf|성능 개선|perf: improve search speed|
+|build|빌드 시스템 변경|build: update Makefile|
+|revert|이전 커밋 되돌리기|revert: revert login feature|
+|wip|작업 중간 상태 임시 저장 (PR 전 정리 필수)|wip: draft executor skeleton|
