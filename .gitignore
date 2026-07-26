@@ -2,6 +2,7 @@
 .obsidian/
 .claude/
 .claudian/
+.vscode/
 
 # macOS
 .DS_Store
