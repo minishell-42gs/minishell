@@ -1,31 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.h                                           :+:      :+:    :+:   */
+/*   free_split.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/19 13:59:19 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 18:20:44 by taegokim         ###   ########.fr       */
+/*   Created: 2026/07/28 14:09:04 by taegokim          #+#    #+#             */
+/*   Updated: 2026/07/28 17:58:28 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PARSER_H
-# define PARSER_H
+#include <stdlib.h>
 
-# include "cmd.h"
-# include "status.h"
-# include "tokens.h"
-
-typedef struct s_parser	t_parser;
-
-struct					s_parser
+void	free_split(char **split)
 {
-	t_status			(*run)(t_parser *this, const t_tokens *tokens,
-					t_cmd **cmds);
-	void				(*destroy)(t_parser *this);
-};
+	int	i;
 
-t_status				parser_init(t_parser *this);
-
-#endif // PARSER_H
+	if (!split)
+		return ;
+	i = 0;
+	while (split[i])
+		free(split[i++]);
+	free(split);
+}

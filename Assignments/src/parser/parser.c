@@ -1,31 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   parser.h                                           :+:      :+:    :+:   */
+/*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/19 13:59:19 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 18:20:44 by taegokim         ###   ########.fr       */
+/*   Created: 2026/07/26 08:24:32 by taegokim          #+#    #+#             */
+/*   Updated: 2026/07/28 18:23:26 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef PARSER_H
-# define PARSER_H
+#include "parser.h"
 
-# include "cmd.h"
-# include "status.h"
-# include "tokens.h"
-
-typedef struct s_parser	t_parser;
-
-struct					s_parser
+static t_status	run_impl(t_parser *this, const t_tokens *tokens, t_cmd **cmds)
 {
-	t_status			(*run)(t_parser *this, const t_tokens *tokens,
-					t_cmd **cmds);
-	void				(*destroy)(t_parser *this);
-};
+}
 
-t_status				parser_init(t_parser *this);
+static void	destroy_impl(t_parser *this)
+{
+	(void)this;
+}
 
-#endif // PARSER_H
+t_status	parser_init(t_parser *this)
+{
+	this->run = run_impl;
+	this->destroy = destroy_impl;
+}

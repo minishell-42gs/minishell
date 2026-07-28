@@ -6,11 +6,13 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/19 13:55:37 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/19 13:59:47 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/28 14:10:02 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef UTIL_H
 # define UTIL_H
+
+void	free_split(char **split);
 
 #endif // UTIL_H
