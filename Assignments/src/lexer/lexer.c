@@ -14,7 +14,7 @@
 #include "libft.h"
 #include "util.h"
 
-static t_status	run_impl(t_lexer *this, const char *line,
+t_status	lexer_run(t_lexer *this, const char *line,
 		t_token_list *token_list)
 {
 	char	**splited;
@@ -29,10 +29,10 @@ static t_status	run_impl(t_lexer *this, const char *line,
 	i = -1;
 	while (splited[++i] != NULL)
 	{
-		token = this->token_factory.create(&this->token_factory, splited[i]);
+		token = token_factory_create(&this->token_factory, splited[i]);
 		if (!token)
 			return (free_split(splited), FAIL);
-		if (token_list->add_token(token_list, token) != OK)
+		if (token_list_add_token(token_list, token) != OK)
 			return (token->destroy(token), free_split(splited), FAIL);
 	}
 	return (free_split(splited), OK);
@@ -46,7 +46,6 @@ static void	destroy_impl(t_lexer *this)
 
 t_status	lexer_init(t_lexer *this)
 {
-	this->run = run_impl;
 	this->destroy = destroy_impl;
 	if (token_factory_init(&this->token_factory) != OK)
 		return (FAIL);

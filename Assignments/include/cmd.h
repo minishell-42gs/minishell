@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/24 17:47:22 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/07/29 15:01:16 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 16:56:27 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,9 @@ struct							s_cmd
 	t_redir						*redirs;
 	t_cmd						*next;
 
-	t_status					(*append_argv)(t_cmd *this, char *str);
 	void						(*destroy)(t_cmd *this);
 };
+t_status						cmd_append_argv(t_cmd *this, char *str);
 // argv:{NULL} , redirs:NULL, next:NULL
 t_status						cmd_init(t_cmd *this);
 
@@ -56,17 +56,20 @@ struct							s_cmd_list
 {
 	t_cmd						*head;
 
-	t_status					(*add_cmd)(t_cmd_list *this, t_cmd *new_node);
 	void						(*destroy)(t_cmd_list *this);
 };
+t_status						cmd_list_add_cmd(t_cmd_list *this,
+									t_cmd *new_node);
 t_status						cmd_list_init(t_cmd_list *this);
 
 struct							s_cmd_factory
 {
-	t_cmd						*(*create)(t_cmd_factory *this, t_token **token);
 	void						(*destroy)(t_cmd_factory *this);
 };
+t_cmd							*cmd_factory_create(t_cmd_factory *this,
+									t_token **token);
 t_status						cmd_factory_init(t_cmd_factory *this);
 
 // extern volatile sig_atomic_t	g_signal;
+
 #endif

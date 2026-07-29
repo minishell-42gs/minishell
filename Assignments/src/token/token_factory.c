@@ -22,7 +22,7 @@ static t_token_type	classify_token_type(const char *str)
 	return (TOKEN_WORD);
 }
 
-static t_token	*create_impl(t_token_factory *this, const char *_value)
+t_token	*token_factory_create(t_token_factory *this, const char *_value)
 {
 	t_token			*token;
 	char			*value;
@@ -48,7 +48,6 @@ static void	destroy_impl(t_token_factory *this)
 
 t_status	token_factory_init(t_token_factory *this)
 {
-	this->create = create_impl;
 	this->destroy = destroy_impl;
 	return (OK);
 }

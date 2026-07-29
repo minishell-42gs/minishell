@@ -17,7 +17,7 @@
 
 // argv is always null-terminate
 // redirs : hard coding NULL
-static t_cmd	*create_impl(t_cmd_factory *this, t_token **token)
+t_cmd	*cmd_factory_create(t_cmd_factory *this, t_token **token)
 {
 	t_cmd			*cmd;
 	char			*str;
@@ -35,7 +35,7 @@ static t_cmd	*create_impl(t_cmd_factory *this, t_token **token)
 			str = ft_strdup((*token)->value);
 			if (!str)
 				return (cmd->destroy(cmd), free(cmd), NULL);
-			if (cmd->append_argv(cmd, str) != OK)
+			if (cmd_append_argv(cmd, str) != OK)
 				return (cmd->destroy(cmd), free(cmd), free(str), NULL);
 		}
 		else
@@ -53,7 +53,6 @@ static void	destroy_impl(t_cmd_factory *this)
 
 t_status	cmd_factory_init(t_cmd_factory *this)
 {
-	this->create = create_impl;
 	this->destroy = destroy_impl;
 	return (OK);
 }

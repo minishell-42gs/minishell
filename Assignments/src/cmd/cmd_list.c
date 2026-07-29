@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/29 10:08:51 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 16:01:49 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 16:37:39 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 #include "util.h"
 #include <stddef.h>
 #include <stdlib.h>
-
-
 
 static void	destroy_all_cmds(t_cmd *cmds)
 {
@@ -38,7 +36,7 @@ static void	destroy_impl(t_cmd_list *this)
 		destroy_all_cmds(this->head);
 }
 
-static t_status	add_cmd_impl(t_cmd_list *this, t_cmd *new_node)
+t_status	cmd_list_add_cmd(t_cmd_list *this, t_cmd *new_node)
 {
 	t_cmd	*cmd;
 
@@ -59,7 +57,6 @@ static t_status	add_cmd_impl(t_cmd_list *this, t_cmd *new_node)
 t_status	cmd_list_init(t_cmd_list *this)
 {
 	this->destroy = destroy_impl;
-	this->add_cmd = add_cmd_impl;
 	this->head = NULL;
 	return (OK);
 }

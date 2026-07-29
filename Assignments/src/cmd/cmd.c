@@ -39,7 +39,7 @@ static void	destroy_impl(t_cmd *this)
 		destroy_all_redirs(this->redirs);
 }
 
-static t_status	append_argv_impl(t_cmd *this, char *str)
+t_status	cmd_append_argv(t_cmd *this, char *str)
 {
 	char	**new_argv;
 	size_t	len;
@@ -66,7 +66,6 @@ static t_status	append_argv_impl(t_cmd *this, char *str)
 t_status	cmd_init(t_cmd *this)
 {
 	this->destroy = destroy_impl;
-	this->append_argv = append_argv_impl;
 	this->argv = ft_calloc(1, sizeof(char *));
 	if (!this->argv)
 		return (FAIL);

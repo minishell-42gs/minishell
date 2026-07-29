@@ -35,7 +35,7 @@ static void	destroy_impl(t_token_list *this)
 		destroy_all_tokens(this->head);
 }
 
-static t_status	add_token_impl(t_token_list *this, t_token *new_node)
+t_status	token_list_add_token(t_token_list *this, t_token *new_node)
 {
 	t_token	*node;
 
@@ -56,7 +56,6 @@ static t_status	add_token_impl(t_token_list *this, t_token *new_node)
 t_status	token_list_init(t_token_list *this)
 {
 	this->destroy = destroy_impl;
-	this->add_token = add_token_impl;
 	this->head = NULL;
 	return (OK);
 }

@@ -39,9 +39,9 @@ t_status	parsing_facade_parse(t_parsing_facade *this, const char *line,
 	(void)envp;
 	if (token_list_init(&token_list) != OK)
 		return (FAIL);
-	if (this->lexer.run(&this->lexer, line, &token_list) != OK)
+	if (lexer_run(&this->lexer, line, &token_list) != OK)
 		return (token_list.destroy(&token_list), FAIL);
-	if (this->parser.run(&this->parser, token_list.head, cmd_list) != OK)
+	if (parser_run(&this->parser, token_list.head, cmd_list) != OK)
 		return (token_list.destroy(&token_list), FAIL);
 	token_list.destroy(&token_list);
 	return (OK);
