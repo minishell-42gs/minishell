@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 11:08:07 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 17:59:50 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 11:19:27 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ struct							s_parsing_facade
 	void						(*destroy)(t_parsing_facade *this);
 };
 t_status						parsing_facade_parse(t_parsing_facade *this,
-									const char *line, t_cmd **cmds,
+									const char *line, t_cmd_list *cmd_list,
 									char **envp);
 
 t_status						parsing_facade_init(t_parsing_facade *this);

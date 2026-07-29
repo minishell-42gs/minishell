@@ -1,43 +1,46 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   token_list.c                                       :+:      :+:    :+:   */
+/*   cmd_list.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/28 13:18:18 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 16:01:32 by taegokim         ###   ########.fr       */
+/*   Created: 2026/07/29 10:08:51 by taegokim          #+#    #+#             */
+/*   Updated: 2026/07/29 16:01:49 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
-#include "token.h"
+#include "cmd.h"
+#include "util.h"
 #include <stddef.h>
+#include <stdlib.h>
 
-static void	destroy_all_tokens(t_token *tokens)
+
+
+static void	destroy_all_cmds(t_cmd *cmds)
 {
-	t_token	*temp;
-	t_token	*node;
+	t_cmd	*temp;
+	t_cmd	*cmd;
 
-	node = tokens;
-	while (node != NULL)
+	cmd = cmds;
+	while (cmd != NULL)
 	{
-		temp = node->next;
-		node->destroy(node);
-		free(node);
-		node = temp;
+		temp = cmd->next;
+		cmd->destroy(cmd);
+		free(cmd);
+		cmd = temp;
 	}
 }
 
-static void	destroy_impl(t_token_list *this)
+static void	destroy_impl(t_cmd_list *this)
 {
 	if (this->head != NULL)
-		destroy_all_tokens(this->head);
+		destroy_all_cmds(this->head);
 }
 
-static t_status	add_token_impl(t_token_list *this, t_token *new_node)
+static t_status	add_cmd_impl(t_cmd_list *this, t_cmd *new_node)
 {
-	t_token	*node;
+	t_cmd	*cmd;
 
 	if (this == NULL || new_node == NULL)
 		return (FAIL);
@@ -46,17 +49,17 @@ static t_status	add_token_impl(t_token_list *this, t_token *new_node)
 		this->head = new_node;
 		return (OK);
 	}
-	node = this->head;
-	while (node->next != NULL)
-		node = node->next;
-	(*node).next = new_node;
+	cmd = this->head;
+	while (cmd->next != NULL)
+		cmd = cmd->next;
+	cmd->next = new_node;
 	return (OK);
 }
 
-t_status	token_list_init(t_token_list *this)
+t_status	cmd_list_init(t_cmd_list *this)
 {
 	this->destroy = destroy_impl;
-	this->add_token = add_token_impl;
+	this->add_cmd = add_cmd_impl;
 	this->head = NULL;
 	return (OK);
 }

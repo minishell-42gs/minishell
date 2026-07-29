@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 11:08:14 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 09:46:23 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 14:15:11 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,16 +32,17 @@ t_status	parsing_facade_init(t_parsing_facade *this)
 }
 
 t_status	parsing_facade_parse(t_parsing_facade *this, const char *line,
-		t_cmd **cmds, char **envp)
+		t_cmd_list *cmd_list, char **envp)
 {
-	t_token_list	tokens;
+	t_token_list	token_list;
 
 	(void)envp;
-	if (token_list_init(&tokens) != OK)
+	if (token_list_init(&token_list) != OK)
 		return (FAIL);
-	if (this->lexer.run(&this->lexer, line, &tokens) != OK)
-		return (tokens.destroy(&tokens), FAIL);
-	if (this->parser.run(&this->parser, &tokens, cmds) != OK)
-		return (tokens.destroy(&tokens), FAIL);
-	return (tokens.destroy(&tokens), OK);
+	if (this->lexer.run(&this->lexer, line, &token_list) != OK)
+		return (token_list.destroy(&token_list), FAIL);
+	if (this->parser.run(&this->parser, token_list.head, cmd_list) != OK)
+		return (token_list.destroy(&token_list), FAIL);
+	token_list.destroy(&token_list);
+	return (OK);
 }

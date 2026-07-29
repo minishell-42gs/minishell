@@ -6,15 +6,19 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/28 15:25:34 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 09:33:38 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 16:21:26 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "token.h"
+#include "libft.h"
 #include <stddef.h>
+#include <stdlib.h>
 
 static t_token_type	classify_token_type(const char *str)
 {
+	if (ft_strlen(str) == 1 && ft_strncmp(str, "|", 1) == 0)
+		return (TOKEN_PIPE);
 	return (TOKEN_WORD);
 }
 
@@ -24,6 +28,7 @@ static t_token	*create_impl(t_token_factory *this, const char *_value)
 	char			*value;
 	t_token_type	type;
 
+	(void)this;
 	token = ft_calloc(1, sizeof(t_token));
 	if (!token)
 		return (NULL);

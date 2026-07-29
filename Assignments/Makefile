@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+         #
+#    By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/07/25 14:01:38 by hyuckwon         ###   ########.fr        #
+#    Updated: 2026/07/29 16:13:13 by taegokim         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,8 +16,13 @@ CC := cc
 RM := rm -f
 CFLAGS := -Wall -Wextra -Werror  
 
-MODULES := lexer parser util app
-
+MODULES := 	app \
+			cmd \
+			lexer \
+			parser \
+			parsing_facade \
+			token \
+			util 
 INCS_DIR := include
 LIBFT_DIR := libft
 OBJ_DIR := build
@@ -28,7 +33,16 @@ HEADERS := $(addprefix $(INCS_DIR)/, $(addsuffix .h, $(MODULES)))
 
 SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/app/app.c\
-
+		$(SRC_DIR)/cmd/cmd_factory.c\
+		$(SRC_DIR)/cmd/cmd_list.c\
+		$(SRC_DIR)/cmd/cmd.c\
+		$(SRC_DIR)/lexer/lexer.c\
+		$(SRC_DIR)/parser/parser.c\
+		$(SRC_DIR)/parsing_facade/parsing_facade.c\
+		$(SRC_DIR)/token/token_factory.c\
+		$(SRC_DIR)/token/token_list.c\
+		$(SRC_DIR)/token/token.c\
+		$(SRC_DIR)/util/free_split.c
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
 LIBFT_NAME := libft.a
