@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 11:08:14 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 18:14:47 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 09:46:23 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,10 @@ t_status	parsing_facade_init(t_parsing_facade *this)
 t_status	parsing_facade_parse(t_parsing_facade *this, const char *line,
 		t_cmd **cmds, char **envp)
 {
-	t_tokens	tokens;
+	t_token_list	tokens;
 
 	(void)envp;
-	if (tokens_init(&tokens) != OK)
+	if (token_list_init(&tokens) != OK)
 		return (FAIL);
 	if (this->lexer.run(&this->lexer, line, &tokens) != OK)
 		return (tokens.destroy(&tokens), FAIL);

@@ -6,14 +6,17 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 08:24:32 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 18:23:26 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 09:24:17 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.h"
 
-static t_status	run_impl(t_parser *this, const t_tokens *tokens, t_cmd **cmds)
+static t_status	run_impl(t_parser *this, const t_token_list *tokens,
+		t_cmd **cmds)
 {
+	(void)this;
+	
 }
 
 static void	destroy_impl(t_parser *this)

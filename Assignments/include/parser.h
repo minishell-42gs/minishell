@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/19 13:59:19 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 18:20:44 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 09:25:07 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,13 @@
 
 # include "cmd.h"
 # include "status.h"
-# include "tokens.h"
+# include "token.h"
 
 typedef struct s_parser	t_parser;
 
 struct					s_parser
 {
-	t_status			(*run)(t_parser *this, const t_tokens *tokens,
+	t_status			(*run)(t_parser *this, const t_token_list *tokens,
 					t_cmd **cmds);
 	void				(*destroy)(t_parser *this);
 };

@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 08:24:21 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 17:57:23 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/29 09:23:50 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,11 @@
 #include "libft.h"
 #include "util.h"
 
-static t_status	run_impl(t_lexer *this, const char *line, t_tokens *tokens)
+static t_status	run_impl(t_lexer *this, const char *line, t_token_list *tokens)
 {
 	char			**splited;
 	size_t			i;
-	t_token_node	*token_node;
+	t_token			*token;
 
 	// 빈 라인 등, 예외 처리 필요할 듯?
 	(void)this;
@@ -28,11 +28,11 @@ static t_status	run_impl(t_lexer *this, const char *line, t_tokens *tokens)
 	i = -1;
 	while (splited[++i] != NULL)
 	{
-		token_node = tokens->token_factory.create(&tokens->token_factory,
+		token = tokens->token_factory.create(&tokens->token_factory,
 				splited[i]);
-		if (!token_node)
+		if (!token)
 			return (free_split(splited), FAIL);
-		tokens->add_token(tokens, token_node);
+		tokens->add_token(tokens, token);
 	}
 	return (free_split(splited), OK);
 }
