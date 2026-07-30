@@ -6,7 +6,7 @@
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 08:24:21 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 16:25:55 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/07/30 19:11:35 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,7 @@
 #include "libft.h"
 #include "util.h"
 
-t_status	lexer_run(t_lexer *this, const char *line,
-		t_token_list *token_list)
+t_status	lexer_run(t_lexer *this, const char *line, t_token_list *token_list)
 {
 	char	**splited;
 	size_t	i;
@@ -33,7 +32,8 @@ t_status	lexer_run(t_lexer *this, const char *line,
 		if (!token)
 			return (free_split(splited), FAIL);
 		if (token_list_add_token(token_list, token) != OK)
-			return (token->destroy(token), free(token), free_split(splited), FAIL);
+			return (token->destroy(token), free(token), free_split(splited),
+				FAIL);
 	}
 	return (free_split(splited), OK);
 }
