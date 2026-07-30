@@ -33,7 +33,7 @@ t_status	lexer_run(t_lexer *this, const char *line,
 		if (!token)
 			return (free_split(splited), FAIL);
 		if (token_list_add_token(token_list, token) != OK)
-			return (token->destroy(token), free_split(splited), FAIL);
+			return (token->destroy(token), free(token), free_split(splited), FAIL);
 	}
 	return (free_split(splited), OK);
 }
