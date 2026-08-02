@@ -1,18 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   util.h                                             :+:      :+:    :+:   */
+/*   token.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/19 13:55:37 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 14:10:02 by taegokim         ###   ########.fr       */
+/*   Created: 2026/07/28 17:04:15 by taegokim          #+#    #+#             */
+/*   Updated: 2026/07/29 16:02:32 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTIL_H
-# define UTIL_H
+#include "token.h"
+#include <stddef.h>
+#include <stdlib.h>
 
-void	free_split(char **split);
+static void	destroy_impl(t_token *this)
+{
+	if (this->value != NULL)
+		free(this->value);
+}
 
-#endif // UTIL_H
+t_status	token_init(t_token *this, t_token_type type, char *value)
+{
+	this->destroy = destroy_impl;
+	this->type = type;
+	this->value = value;
+	this->next = NULL;
+	return (OK);
+}

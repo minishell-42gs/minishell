@@ -1,18 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   util.h                                             :+:      :+:    :+:   */
+/*   free_split.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/19 13:55:37 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/28 14:10:02 by taegokim         ###   ########.fr       */
+/*   Created: 2026/07/28 14:09:04 by taegokim          #+#    #+#             */
+/*   Updated: 2026/07/28 17:58:28 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef UTIL_H
-# define UTIL_H
+#include <stdlib.h>
 
-void	free_split(char **split);
+void	free_split(char **split)
+{
+	int	i;
 
-#endif // UTIL_H
+	if (!split)
+		return ;
+	i = 0;
+	while (split[i])
+		free(split[i++]);
+	free(split);
+}
