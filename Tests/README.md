@@ -4,23 +4,36 @@
 호스트 기반 단위 테스트 공간이다. Unity는 C용 테스트 프레임워크이며, assertion
 결과를 모아 보여 주고 테스트가 하나라도 실패하면 0이 아닌 종료 코드를 반환한다.
 
-현재 테스트 대상은 `Assignments/src/token/`이다.
+현재 테스트 대상은 `Assignments/src/`의 `app`, `cmd`, `lexer`, `parser`,
+`parsing_facade`, `token`, `util` 모듈이다. `main.c`는 테스트 실행 파일과
+진입점이 충돌하므로 링크하지 않는다.
 
 ## 디렉터리 구조
 
 ```text
 Tests/
+├── app/test_app.c
+├── cmd/
+│   ├── test_cmd.c
+│   ├── test_cmd_factory.c
+│   └── test_cmd_list.c
+├── lexer/test_lexer.c
+├── parser/test_parser.c
+├── parsing_facade/test_parsing_facade.c
+├── token/test_token.c
+├── util/test_free_split.c
+├── scripts/run_tests.sh            # 테스트 실행과 전체 결과 집계
 ├── Makefile
 ├── README.md
 ├── what-is-tdd.md
-├── Unity/                 # 외부 Unity 프레임워크
-└── token/
-    └── test_token.c       # token 모듈의 테스트와 테스트 main
+└── Unity/                         # 외부 Unity 프레임워크
 ```
 
-빌드 결과는 `Tests/build/`에 생성된다. `Assignments/src/main.c`는 링크하지
-않는다. 테스트 프로그램은 `test_token.c`의 `main()`에서 시작해 token 함수를
-직접 호출한다.
+각 테스트 파일은 자체 `main()`을 가진 독립 실행 파일로 빌드된다. 운영 소스와
+libft 소스는 그대로 `Assignments/`에서 읽되, 테스트용 오브젝트는
+`Tests/build/obj/`에 생성한다. sanitizer용 오브젝트는
+`Tests/build/sanitize/obj/`에 별도로 생성한다. 따라서 테스트 빌드는
+`Assignments/` 아래에 `.o`나 `libft.a`를 만들지 않는다.
 
 ## 실행 방법
 
@@ -30,17 +43,25 @@ Tests/
 make -C Tests test
 ```
 
-`make -C Tests` 또는 `make -C Tests token`도 같은 테스트를 실행한다. 성공하면
-Unity가 다음과 같은 요약을 출력하고 종료 코드 0을 반환한다.
+`make -C Tests`도 전체 테스트를 실행한다. 특정 모듈의 테스트만 실행하려면
+모듈 이름을 타깃으로 사용한다.
 
-```text
-7 Tests 0 Failures 0 Ignored
-OK
+```sh
+// 예시
+make -C Tests cmd
+make -C Tests lexer
+make -C Tests parser
+make -C Tests token
+...
 ```
 
+테스트의 실행과 결과 집계는 `scripts/run_tests.sh`가
+담당하고, Makefile은 테스트 빌드 및 실행기 호출만 담당한다.
+
 AddressSanitizer와 UndefinedBehaviorSanitizer로 잘못된 메모리 접근과 정의되지
-않은 동작을 확인할 수 있다. 디버거나 샌드박스의 `ptrace` 환경에서도 실행되도록
-이 타깃에서는 LeakSanitizer만 끈다.
+않은 동작을 확인할 수 있다. 운영 모듈과 libft도 sanitizer 옵션으로 다시
+컴파일한다. 디버거나 샌드박스의 `ptrace` 환경에서도 실행되도록 이 타깃에서는
+LeakSanitizer만 끈다.
 
 ```sh
 make -C Tests sanitize
@@ -57,26 +78,6 @@ make -C Tests memory
 ```sh
 make -C Tests clean
 ```
-
-## 현재 token 테스트의 계약
-
-`token/test_token.c`는 공개 헤더인 `token.h`만을 기준으로 다음 동작을
-검증한다.
-
-- `token_init()`이 타입과 값을 저장하고 `next`를 `NULL`로 초기화한다.
-- factory가 입력 문자열을 복제해 독립적으로 소유한다.
-- 정확히 `"|"`인 값만 `TOKEN_PIPE`이고 일반 문자열과 `"||"`는
-  `TOKEN_WORD`이다.
-- 새 token list는 비어 있다.
-- list에 추가한 token은 삽입 순서를 유지한다.
-- `token_list_add_token()`은 `NULL` list 또는 token을 거부하고 기존 상태를
-  바꾸지 않는다.
-- 각 테스트 뒤에 생성한 token을 정리한다. sanitizer가 이 경로도 검사한다.
-
-여기서 `"||"`가 `TOKEN_WORD`라는 것은 현재 구현의 계약이다. minishell에서
-`||`를 문법 오류나 별도 연산자로 다루기로 결정했다면, 원하는 결과로 테스트를
-먼저 바꿔 실패(Red)를 확인한 뒤 구현을 수정한다.
-
 ## Unity 테스트 읽는 법
 
 Unity 테스트 파일에는 세 부분이 있다.
@@ -125,7 +126,7 @@ TEST_ASSERT_NOT_NULL(token);
 
 ## 테스트 하나를 추가하는 순서
 
-1. 아직 없는 동작을 설명하는 `test_...` 함수를 `token/test_token.c`에 쓴다.
+1. 대상 모듈 디렉터리의 `test_...c`에 아직 없는 동작을 설명하는 함수를 쓴다.
 2. `main()`에 같은 함수의 `RUN_TEST(...)`를 추가한다.
 3. `make -C Tests test`로 의도한 이유 때문에 실패하는지 확인한다(Red).
 4. `Assignments/src/token/`을 통과할 만큼만 수정한다(Green).
@@ -135,5 +136,5 @@ TEST_ASSERT_NOT_NULL(token);
 여러 규칙을 한꺼번에 검증하기보다, 실패 이유가 바로 드러나도록 행동 하나에
 집중하는 편이 좋다.
 
-다른 모듈을 추가할 때는 Makefile의 source 목록과 실행 파일 구성을 모듈별로
-분리하면 된다. 지금은 token 학습에 필요한 최소 구성만 유지한다.
+새 테스트 파일을 `Tests/<module>/test_*.c` 형태로 추가하면 Makefile이 별도
+실행 파일로 자동 빌드한다.
