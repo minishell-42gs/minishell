@@ -11,6 +11,7 @@
 
 | Prefix   | 설명                    | 예시                              |
 | -------- | --------------------- | ------------------------------- |
+| story  | 새로운 스토리 추가             | story/v2-walking_skeleton     |
 | feature  | 새로운 기능 추가             | feature/user-profile-upload     |
 | fix      | 버그 수정                 | fix/null-pointer-crash          |
 | docs     | 문서 작성 및 수정            | docs/api-specification          |
