@@ -49,7 +49,10 @@ static t_token	*append_word_token(const char *value)
 	return (token);
 }
 
-/* 팩토리가 ls와 -l을 하나의 명령 argv로 만드는지 확인한다. */
+/* "ls"와 "-l" 단어 토큰을 하나의 명령 argv로 만드는지 확인한다.
+ * 토큰마다 명령을 만들거나 토큰의 문자열 주소를 그대로 재사용하면
+ * argv 순서가 깨지거나 토큰 리스트가 해제된 뒤 명령이 dangling pointer를 갖는다.
+ */
 void	test_factory_builds_single_command_argv_from_word_tokens(void)
 {
 	t_token	*cursor;

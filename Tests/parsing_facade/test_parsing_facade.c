@@ -20,7 +20,10 @@ void	tearDown(void)
 	g_test_facade.destroy(&g_test_facade);
 }
 
-/* facade가 ls -l 입력을 실행 가능한 단일 argv로 변환하는지 확인한다. */
+/* facade가 "ls -l" 입력을 lexer와 parser를 거쳐 하나의 argv로 변환하는지 확인한다.
+ * facade에서 단계 연결이 끊기면 토큰은 만들어져도 명령이 생성되지 않거나,
+ * argv 순서가 바뀌어 최종 실행 결과가 원래 입력과 달라진다.
+ */
 void	test_facade_parses_ls_with_option_into_one_command(void)
 {
 	char	*envp[] = {"PATH=/bin", NULL};
@@ -37,7 +40,10 @@ void	test_facade_parses_ls_with_option_into_one_command(void)
 	TEST_ASSERT_NULL(cmd->next);
 }
 
-/* facade가 NULL 입력을 거부하고 명령 리스트를 비워 두는지 확인한다. */
+/* facade가 NULL 입력을 거부하고 명령 리스트를 비워 두는지 확인한다.
+ * NULL line을 lexer로 넘기면 크래시할 수 있고, 실패 전에 명령을 추가하면
+ * 잘못된 입력이 성공한 것처럼 남아 후속 실행의 원인이 된다.
+ */
 void	test_facade_rejects_null_line(void)
 {
 	TEST_ASSERT_EQUAL_INT(FAIL, parsing_facade_parse(&g_test_facade,

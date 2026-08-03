@@ -46,7 +46,10 @@ static void	append_word_token(const char *value)
 	TEST_ASSERT_EQUAL_INT(OK, status);
 }
 
-/* parser가 ls와 -l 토큰을 하나의 명령 argv로 묶는지 확인한다. */
+/* parser가 "ls"와 "-l" 토큰을 하나의 명령 argv로 묶는지 확인한다.
+ * 토큰마다 명령을 만들거나 argv의 NULL 종료를 빠뜨리면 한 줄의 입력이
+ * 여러 명령으로 실행되거나 execve가 배열 밖까지 읽게 된다.
+ */
 void	test_parser_builds_one_command_from_ls_and_option(void)
 {
 	t_cmd	*cmd;
@@ -64,7 +67,10 @@ void	test_parser_builds_one_command_from_ls_and_option(void)
 	TEST_ASSERT_NULL(cmd->next);
 }
 
-/* parser가 NULL 입력을 거부하고 명령 리스트를 변경하지 않는지 확인한다. */
+/* parser가 NULL 토큰과 NULL 명령 리스트를 거부하고 기존 리스트를 유지하는지 확인한다.
+ * 어느 하나라도 허용하면 입력 리스트를 역참조하다 크래시하거나, 실패한
+ * 파싱 결과가 head에 남아 다음 명령 처리에 섞일 수 있다.
+ */
 void	test_parser_rejects_null_arguments(void)
 {
 	append_word_token("ls");

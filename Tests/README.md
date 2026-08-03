@@ -16,7 +16,8 @@ Tests/
 ├── cmd/
 │   ├── test_cmd.c
 │   ├── test_cmd_factory.c
-│   └── test_cmd_list.c
+│   ├── test_cmd_list.c
+│   └── test_create_cmd_path.c
 ├── lexer/test_lexer.c
 ├── parser/test_parser.c
 ├── parsing_facade/test_parsing_facade.c

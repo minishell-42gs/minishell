@@ -35,7 +35,10 @@ static void	append_argument(const char *argument)
 	TEST_ASSERT_EQUAL_INT(OK, status);
 }
 
-/* 새 명령이 빈 argv와 연결되지 않은 상태로 초기화되는지 확인한다. */
+/* 새 명령이 빈 argv와 연결되지 않은 상태로 초기화되는지 확인한다.
+ * argv[0]이나 next에 이전 값이 남으면 첫 명령에도 쓰레기 인자가 붙거나,
+ * 명령 리스트 순회가 엉뚱한 노드로 이어진다.
+ */
 void	test_cmd_init_creates_an_empty_unlinked_command(void)
 {
 	TEST_ASSERT_NOT_NULL(g_test_cmd.argv);
@@ -45,7 +48,10 @@ void	test_cmd_init_creates_an_empty_unlinked_command(void)
 	TEST_ASSERT_NOT_NULL(g_test_cmd.destroy);
 }
 
-/* 명령 인자가 삽입 순서대로 저장되고 NULL로 끝나는지 확인한다. */
+/* "ls -l"의 인자가 삽입 순서대로 저장되고 NULL로 끝나는지 확인한다.
+ * argv[0]과 argv[1]이 뒤바뀌거나 마지막 NULL이 없으면 실제 실행 인자와
+ * execve가 읽는 배열의 끝이 모두 잘못된다.
+ */
 void	test_cmd_appends_ls_and_option_in_order(void)
 {
 	append_argument("ls");
@@ -55,7 +61,10 @@ void	test_cmd_appends_ls_and_option_in_order(void)
 	TEST_ASSERT_NULL(g_test_cmd.argv[2]);
 }
 
-/* NULL 인자를 거부해 기존의 빈 argv를 유지하는지 확인한다. */
+/* NULL 인자를 거부해 기존의 빈 argv를 유지하는지 확인한다.
+ * 예를 들어 cmd_append_argv(cmd, NULL)을 허용하면 argv에 유효한 문자열
+ * 대신 NULL이 삽입되어 이후 인자 추가와 명령 실행 상태가 모호해진다.
+ */
 void	test_cmd_rejects_null_argument_without_changing_argv(void)
 {
 	TEST_ASSERT_EQUAL_INT(FAIL, cmd_append_argv(&g_test_cmd, NULL));

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cmd.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/24 17:47:22 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/07/29 16:56:27 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/08/03 18:16:28 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,8 @@ struct							s_cmd_factory
 t_cmd							*cmd_factory_create(t_cmd_factory *this,
 									t_token **token);
 t_status						cmd_factory_init(t_cmd_factory *this);
+
+char							*create_cmd_path(char *cmd_name, char **envp);
 
 // extern volatile sig_atomic_t	g_signal;
 

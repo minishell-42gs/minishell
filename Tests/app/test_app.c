@@ -11,7 +11,10 @@ void	tearDown(void)
 {
 }
 
-/* 앱 초기화가 환경 변수를 저장하고 종료 상태를 0으로 만드는지 확인한다. */
+/* 앱 초기화가 envp를 보존하고 last_status를 0으로 되돌리는지 확인한다.
+ * 이전 명령의 상태가 42인 채 남으면 첫 실행부터 $?가 42로 오염되고,
+ * envp를 잃으면 이후 PATH 기반 명령 검색이 실제 환경과 달라진다.
+ */
 void	test_app_init_stores_envp_and_resets_last_status(void)
 {
 	char	*envp[] = {"PATH=/bin", NULL};

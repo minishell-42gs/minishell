@@ -47,14 +47,20 @@ static t_cmd	*append_tracked_cmd(void)
 	return (cmd);
 }
 
-/* 새 명령 리스트가 비어 있고 소멸 함수를 제공하는지 확인한다. */
+/* 새 명령 리스트가 비어 있고 소멸 함수를 제공하는지 확인한다.
+ * head가 초기화되지 않으면 첫 명령을 추가할 때 존재하지 않는 노드를
+ * 따라가거나, 종료 시 초기화되지 않은 주소를 해제할 수 있다.
+ */
 void	test_cmd_list_init_creates_an_empty_list(void)
 {
 	TEST_ASSERT_NULL(g_test_cmd_list.head);
 	TEST_ASSERT_NOT_NULL(g_test_cmd_list.destroy);
 }
 
-/* 명령 리스트가 명령을 삽입 순서대로 연결하는지 확인한다. */
+/* 명령 리스트가 삽입 순서대로 연결되는지 확인한다.
+ * 예를 들어 "ls | wc"를 반대로 연결하면 파이프라인 실행 순서가 바뀌어
+ * 사용자가 작성한 명령과 전혀 다른 결과가 나온다.
+ */
 void	test_cmd_list_appends_commands_in_insertion_order(void)
 {
 	t_cmd	*first;
@@ -67,7 +73,10 @@ void	test_cmd_list_appends_commands_in_insertion_order(void)
 	TEST_ASSERT_NULL(second->next);
 }
 
-/* NULL 인자를 거부하고 비어 있는 리스트를 유지하는지 확인한다. */
+/* NULL 리스트와 NULL 명령을 거부하고 기존 리스트를 유지하는지 확인한다.
+ * 어느 하나라도 허용하면 this->head 또는 new_node를 역참조하는 순간
+ * 크래시가 발생하거나, 실패한 명령이 리스트에 부분적으로 남을 수 있다.
+ */
 void	test_cmd_list_rejects_null_arguments(void)
 {
 	g_untracked_cmd = ft_calloc(1, sizeof(t_cmd));

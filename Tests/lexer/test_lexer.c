@@ -20,7 +20,10 @@ void	tearDown(void)
 	g_test_lexer.destroy(&g_test_lexer);
 }
 
-/* lexer가 ls -l을 순서가 보존된 두 단어 토큰으로 만드는지 확인한다. */
+/* lexer가 "ls -l"을 순서가 보존된 두 단어 토큰으로 만드는지 확인한다.
+ * 명령어와 옵션이 하나로 합쳐지거나 순서가 바뀌면 parser는 실제 입력과
+ * 다른 argv를 만들고, 사용자가 입력한 옵션이 엉뚱한 명령에 전달된다.
+ */
 void	test_lexer_tokenizes_ls_with_option(void)
 {
 	t_token	*first;
@@ -39,7 +42,10 @@ void	test_lexer_tokenizes_ls_with_option(void)
 	TEST_ASSERT_NULL(second->next);
 }
 
-/* lexer가 여러 공백을 명령 인자에 포함하지 않는지 확인한다. */
+/* lexer가 여러 공백을 명령 인자에 포함하지 않는지 확인한다.
+ * "  ls   -l  "에서 공백을 값으로 보존하면 첫 토큰이 "  ls"가 되거나
+ * 빈 토큰이 생겨, 정상적인 셸 입력이 잘못된 명령 이름으로 바뀐다.
+ */
 void	test_lexer_ignores_repeated_spaces_between_arguments(void)
 {
 	t_token	*first;
@@ -56,7 +62,10 @@ void	test_lexer_ignores_repeated_spaces_between_arguments(void)
 	TEST_ASSERT_NULL(second->next);
 }
 
-/* lexer가 NULL 입력을 거부하고 리스트를 변경하지 않는지 확인한다. */
+/* lexer가 NULL 입력과 NULL 출력 리스트를 거부하고 기존 리스트를 유지하는지 확인한다.
+ * lexer_run(NULL, ...)을 역참조하면 즉시 크래시하고, 실패 전에 토큰을
+ * 일부 추가하면 이후 parser가 불완전한 입력을 정상 입력으로 오인한다.
+ */
 void	test_lexer_rejects_null_arguments(void)
 {
 	TEST_ASSERT_EQUAL_INT(FAIL,

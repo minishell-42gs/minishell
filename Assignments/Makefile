@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+         #
+#    By: tg <tg@student.42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/07/29 16:13:13 by taegokim         ###   ########.fr        #
+#    Updated: 2026/08/03 18:24:08 by tg               ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -36,6 +36,7 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/cmd/cmd_factory.c\
 		$(SRC_DIR)/cmd/cmd_list.c\
 		$(SRC_DIR)/cmd/cmd.c\
+		$(SRC_DIR)/cmd/create_cmd_path.c\
 		$(SRC_DIR)/lexer/lexer.c\
 		$(SRC_DIR)/parser/parser.c\
 		$(SRC_DIR)/parsing_facade/parsing_facade.c\
