@@ -13,6 +13,9 @@
 #ifndef UTIL_H
 # define UTIL_H
 
+# include <stdbool.h>
+
 void	free_split(char **split);
+bool	is_blank(const char *str);
 
 #endif // UTIL_H

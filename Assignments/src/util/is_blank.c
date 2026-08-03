@@ -1,33 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   app.h                                              :+:      :+:    :+:   */
+/*   is_blank.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/25 13:02:05 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/08/02 16:50:53 by hyuckwon         ###   ########.fr       */
+/*   Created: 2026/08/02 15:30:00 by hyuckwon          #+#    #+#             */
+/*   Updated: 2026/08/02 17:08:09 by hyuckwon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef APP_H
-# define APP_H
-# include "status.h"
-# include "parsing_facade.h"
+#include "util.h"
+#include <stddef.h>
 
-typedef struct s_app	t_app;
-
-struct s_app
+static bool	is_space(char c)
 {
-	t_parsing_facade	*parsing_facade;
+	return (c == ' ' || (c >= '\t' && c <= '\r'));
+}
 
-	char				**envp;
-	int					last_status;
+bool	is_blank(const char *str)
+{
+	int	i;
 
-	t_status			(*run)(t_app * this);
-	void				(*destroy)(t_app *this);
-};
-
-t_status	app_init(t_app *this, char **envp);
-
-#endif
+	if (str == NULL)
+		return (true);
+	i = 0;
+	while (str[i] != '\0')
+	{
+		if (is_space(str[i]) == false)
+			return (false);
+		i++;
+	}
+	return (true);
+}
