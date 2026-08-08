@@ -6,7 +6,7 @@
 /*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/25 13:02:05 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/08/02 16:50:53 by hyuckwon         ###   ########.fr       */
+/*   Updated: 2026/08/03 21:45:13 by hyuckwon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ typedef struct s_app	t_app;
 
 struct s_app
 {
-	t_parsing_facade	*parsing_facade;
+	t_parsing_facade	parsing_facade;
 
 	char				**envp;
 	int					last_status;

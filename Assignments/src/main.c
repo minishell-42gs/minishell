@@ -6,11 +6,10 @@
 /*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/19 00:00:00 by                   #+#    #+#             */
-/*   Updated: 2026/08/02 15:08:31 by hyuckwon         ###   ########.fr       */
+/*   Updated: 2026/08/08 09:37:58 by hyuckwon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
 #include "app.h"
 #include "libft.h"
 
@@ -21,8 +20,9 @@ int	main(int argc, char **argv, char **envp)
 	(void)argc;
 	(void)argv;
 	ft_memset(&app, 0, sizeof(t_app));
-	app_init(&app, envp);
+	if (app_init(&app, envp) != OK)
+		return (app.destroy(&app), 1);
 	app.run(&app);
-	printf("minishell: hello, we code\n");
-	return (0);
+	app.destroy(&app);
+	return (app.last_status);
 }
