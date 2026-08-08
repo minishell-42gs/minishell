@@ -33,11 +33,12 @@ static t_status	run_impl(t_app *this)
 		{
 			add_history(line);
 			if (cmd_list_init(&cmd_list) != OK)
-				return (free(line), FAIL);
-			parsing_facade_parse(&this->parsing_facade, line,
-				&cmd_list, this->envp);
+				return (free(line), rl_clear_history(), FAIL);
+			if (parsing_facade_parse(&this->parsing_facade, line,
+					&cmd_list, this->envp) != OK)
+				return (cmd_list.destroy(&cmd_list), free(line),
+					rl_clear_history(), FAIL);
 			cmd_list.destroy(&cmd_list);
-		}
 		free(line);
 	}
 	rl_clear_history();
