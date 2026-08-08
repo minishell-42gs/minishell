@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+         #
+#    By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/07/29 16:13:13 by taegokim         ###   ########.fr        #
+#    Updated: 2026/08/02 15:56:29 by hyuckwon         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,8 @@ NAME := minishell
 
 CC := cc
 RM := rm -f
-CFLAGS := -Wall -Wextra -Werror  
+CFLAGS := -Wall -Wextra -Werror 
+LDFLAGS := -lreadline
 
 MODULES := 	app \
 			cmd \
@@ -42,7 +43,8 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/token/token_factory.c\
 		$(SRC_DIR)/token/token_list.c\
 		$(SRC_DIR)/token/token.c\
-		$(SRC_DIR)/util/free_split.c
+		$(SRC_DIR)/util/free_split.c\
+		$(SRC_DIR)/util/is_blank.c
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
 LIBFT_NAME := libft.a
@@ -60,7 +62,7 @@ $(LIBFT): FORCE
 FORCE:
 
 $(NAME): $(OBJS) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBFT) $(LDFLAGS) -o $(NAME)
 
 clean:
 	$(MAKE) clean -C $(LIBFT_DIR)

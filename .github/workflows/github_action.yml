@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - 'story/**'
   pull_request:
     branches:
       - main
+      - 'story/**'
 
 permissions:
   contents: read
@@ -33,6 +35,9 @@ jobs:
     steps:
       - name: 저장소 코드 가져오기
         uses: actions/checkout@v4
+
+      - name: readline 설치
+        run: sudo apt-get update && sudo apt-get install -y libreadline-dev
 
       - name: make 확인
         run: make -C Assignments fclean && make -C Assignments
