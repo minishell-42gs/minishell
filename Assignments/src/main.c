@@ -22,7 +22,8 @@ int	main(int argc, char **argv, char **envp)
 	ft_memset(&app, 0, sizeof(t_app));
 	if (app_init(&app, envp) != OK)
 		return (app.destroy(&app), 1);
-	app.run(&app);
+	if (app.run(&app) != OK)
+		return (app.destroy(&app), 1);
 	app.destroy(&app);
 	return (app.last_status);
 }
