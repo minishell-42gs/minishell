@@ -6,18 +6,20 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/03 18:21:30 by tg                #+#    #+#             */
-/*   Updated: 2026/08/03 18:22:41 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/08 09:56:22 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "util.h"
 #include "libft.h"
+#include "util.h"
 #include <unistd.h>
 
 static char	*get_path_env(char **envp)
 {
 	int	i;
 
+	if (envp == NULL)
+		return (NULL);
 	i = -1;
 	while (envp[++i])
 		if (ft_strncmp(envp[i], "PATH=", 5) == 0)
@@ -52,8 +54,11 @@ static char	*find_cmd_path(char *cmd, char **envp)
 	return (free_split(dirs), NULL);
 }
 
+/* cmd_name is always non-NULL. */
 char	*create_cmd_path(char *cmd_name, char **envp)
 {
+	if (cmd_name[0] == '\0')
+		return (NULL);
 	if (ft_strchr(cmd_name, '/'))
 	{
 		if (access(cmd_name, X_OK) == 0)

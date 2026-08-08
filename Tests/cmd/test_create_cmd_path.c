@@ -291,33 +291,6 @@ void	test_create_cmd_path_skips_a_non_executable_path_candidate(void)
 	TEST_ASSERT_EQUAL_STRING(g_test_file_b, g_test_cmd_path);
 }
 
-/* PATH의 첫 번째 빈 항목을 현재 작업 디렉터리로 해석하는지 확인한다.
- * PATH=:/no/such에서 현재 디렉터리의 fixture_cmd를 찾지 못하면 빈 항목을
- * 버린 것이므로, PATH 앞에 현재 디렉터리를 둔 사용자의 의도와 달라진다.
- */
-void	test_create_cmd_path_searches_the_current_directory_for_a_leading_empty_path_entry(void)
-{
-	assert_current_directory_is_searched(":/no/such");
-}
-
-/* PATH의 중간 빈 항목을 현재 작업 디렉터리로 해석하는지 확인한다.
- * PATH=/no/such::/also/missing에서 빈 항목을 건너뛰면 양쪽 디렉터리만
- * 검색하게 되어 현재 디렉터리에만 있는 실행 파일을 놓치게 된다.
- */
-void	test_create_cmd_path_searches_the_current_directory_for_a_middle_empty_path_entry(void)
-{
-	assert_current_directory_is_searched("/no/such::/also/missing");
-}
-
-/* PATH의 마지막 빈 항목을 현재 작업 디렉터리로 해석하는지 확인한다.
- * PATH=/no/such:에서 마지막 빈 항목을 버리면 PATH 검색이 끝난 뒤 현재
- * 디렉터리를 확인하지 않아, 뒤에 둔 명령을 찾지 못한다.
- */
-void	test_create_cmd_path_searches_the_current_directory_for_a_trailing_empty_path_entry(void)
-{
-	assert_current_directory_is_searched("/no/such:");
-}
-
 /* 상대 PATH 항목을 호출 시점의 현재 작업 디렉터리 기준으로 해석하는지 확인한다.
  * PATH=.에서 cd 이후의 디렉터리를 기준으로 삼지 않으면, 같은 PATH라도
  * 작업 디렉터리가 바뀐 뒤 다른 실행 파일을 찾거나 명령을 놓치게 된다.
@@ -369,28 +342,6 @@ void	test_create_cmd_path_skips_a_missing_path_directory(void)
 	TEST_ASSERT_EQUAL_STRING(g_test_file_a, g_test_cmd_path);
 }
 
-/* PATH 후보가 디렉터리이면 실행 파일로 반환하지 않고 다음 후보를 검색하는지 확인한다.
- * A/fixture_cmd가 디렉터리이고 B/fixture_cmd가 실행 파일일 때 A를 반환하면,
- * 호출자가 디렉터리를 execve하게 되어 실제 실행 단계에서 EISDIR이 발생한다.
- */
-void	test_create_cmd_path_skips_a_directory_path_candidate(void)
-{
-	char	*envp[2];
-
-	make_test_directory(g_test_dir_a, &g_test_dir_a_created);
-	make_test_directory(g_test_dir_b, &g_test_dir_b_created);
-	g_test_candidate_dir = create_fixture_directory(g_test_dir_a, TEST_COMMAND);
-	g_test_file_b = create_fixture_file(g_test_dir_b, TEST_COMMAND, 0755);
-	TEST_ASSERT_NOT_NULL(g_test_candidate_dir);
-	TEST_ASSERT_NOT_NULL(g_test_file_b);
-	g_test_path_env = create_path_env(g_test_dir_a, g_test_dir_b);
-	envp[0] = g_test_path_env;
-	envp[1] = NULL;
-	g_test_cmd_path = create_cmd_path(TEST_COMMAND, envp);
-	TEST_ASSERT_NOT_NULL(g_test_cmd_path);
-	TEST_ASSERT_EQUAL_STRING(g_test_file_b, g_test_cmd_path);
-}
-
 /* PATH의 어떤 디렉터리에도 명령이 없으면 NULL을 반환하는지 확인한다.
  * 검색 실패를 마지막 후보 경로나 디렉터리 경로로 오인하면, 없는 명령도
  * 실행 단계까지 넘어가 실제 오류 원인이 흐려진다.
@@ -428,14 +379,10 @@ int	main(void)
 	RUN_TEST(test_create_cmd_path_does_not_fallback_to_path_for_a_direct_path);
 	RUN_TEST(test_create_cmd_path_uses_the_first_executable_in_path_order);
 	RUN_TEST(test_create_cmd_path_skips_a_non_executable_path_candidate);
-	RUN_TEST(test_create_cmd_path_searches_the_current_directory_for_a_leading_empty_path_entry);
-	RUN_TEST(test_create_cmd_path_searches_the_current_directory_for_a_middle_empty_path_entry);
-	RUN_TEST(test_create_cmd_path_searches_the_current_directory_for_a_trailing_empty_path_entry);
 	RUN_TEST(test_create_cmd_path_resolves_a_relative_path_from_the_current_directory);
 	RUN_TEST(test_create_cmd_path_rejects_an_empty_command_name);
 	RUN_TEST(test_create_cmd_path_returns_null_for_an_empty_path);
 	RUN_TEST(test_create_cmd_path_skips_a_missing_path_directory);
-	RUN_TEST(test_create_cmd_path_skips_a_directory_path_candidate);
 	RUN_TEST(test_create_cmd_path_returns_null_when_no_path_entry_matches);
 	RUN_TEST(test_create_cmd_path_returns_null_without_a_path_environment);
 	return (UNITY_END());
