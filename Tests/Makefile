@@ -1,6 +1,7 @@
 CC := cc
 CFLAGS := -Wall -Wextra -Werror -g3
 CPPFLAGS := -IUnity/src -I../Assignments/include -I../Assignments/libft
+LDLIBS := -lreadline
 SANITIZER_FLAGS := -fsanitize=address,undefined -fno-omit-frame-pointer
 
 UNITY_SOURCE := Unity/src/unity.c
@@ -52,12 +53,12 @@ build/sanitize/%: %.c $(UNITY_SOURCE) $(SANITIZER_PRODUCTION_OBJECTS) \
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(SANITIZER_FLAGS) $(CPPFLAGS) \
 		$(UNITY_SOURCE) $< $(SANITIZER_PRODUCTION_OBJECTS) \
-		$(SANITIZER_LIBFT_OBJECTS) $(SANITIZER_FLAGS) -o $@
+		$(SANITIZER_LIBFT_OBJECTS) $(SANITIZER_FLAGS) $(LDLIBS) -o $@
 
 build/%: %.c $(UNITY_SOURCE) $(PRODUCTION_OBJECTS) $(LIBFT_OBJECTS) $(HEADERS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(UNITY_SOURCE) $< \
-		$(PRODUCTION_OBJECTS) $(LIBFT_OBJECTS) -o $@
+		$(PRODUCTION_OBJECTS) $(LIBFT_OBJECTS) $(LDLIBS) -o $@
 
 build/obj/src/%.o: ../Assignments/src/%.c $(HEADERS)
 	@mkdir -p $(dir $@)

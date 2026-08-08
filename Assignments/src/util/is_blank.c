@@ -1,29 +1,35 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   is_blank.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/19 00:00:00 by                   #+#    #+#             */
-/*   Updated: 2026/08/08 09:37:58 by hyuckwon         ###   ########.fr       */
+/*   Created: 2026/08/02 15:30:00 by hyuckwon          #+#    #+#             */
+/*   Updated: 2026/08/02 17:08:09 by hyuckwon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "app.h"
-#include "libft.h"
+#include "util.h"
+#include <stddef.h>
 
-int	main(int argc, char **argv, char **envp)
+static bool	is_space(char c)
 {
-	t_app	app;
+	return (c == ' ' || (c >= '\t' && c <= '\r'));
+}
 
-	(void)argc;
-	(void)argv;
-	ft_memset(&app, 0, sizeof(t_app));
-	if (app_init(&app, envp) != OK)
-		return (app.destroy(&app), 1);
-	if (app.run(&app) != OK)
-		return (app.destroy(&app), 1);
-	app.destroy(&app);
-	return (app.last_status);
+bool	is_blank(const char *str)
+{
+	int	i;
+
+	if (str == NULL)
+		return (true);
+	i = 0;
+	while (str[i] != '\0')
+	{
+		if (is_space(str[i]) == false)
+			return (false);
+		i++;
+	}
+	return (true);
 }
