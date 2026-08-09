@@ -37,6 +37,7 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/cmd/cmd_factory.c\
 		$(SRC_DIR)/cmd/cmd_list.c\
 		$(SRC_DIR)/cmd/cmd.c\
+		$(SRC_DIR)/cmd/create_cmd_path.c\
 		$(SRC_DIR)/lexer/lexer.c\
 		$(SRC_DIR)/parser/parser.c\
 		$(SRC_DIR)/parsing_facade/parsing_facade.c\
