@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cmd_list.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/29 10:08:51 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 16:37:39 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/08/09 09:41:44 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-static void	destroy_all_cmds(t_cmd *cmds)
+static void	destroy_all_cmds(t_cmd *head)
 {
 	t_cmd	*temp;
 	t_cmd	*cmd;
 
-	cmd = cmds;
+	cmd = head;
 	while (cmd != NULL)
 	{
 		temp = cmd->next;
