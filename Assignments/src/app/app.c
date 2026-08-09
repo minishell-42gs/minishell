@@ -6,7 +6,7 @@
 /*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/25 11:23:06 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/08/08 09:48:42 by hyuckwon         ###   ########.fr       */
+/*   Updated: 2026/08/08 16:31:19 by hyuckwon         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ static t_status	run_impl(t_app *this)
 				return (cmd_list.destroy(&cmd_list), free(line),
 					rl_clear_history(), FAIL);
 			cmd_list.destroy(&cmd_list);
+		}
 		free(line);
 	}
 	rl_clear_history();
