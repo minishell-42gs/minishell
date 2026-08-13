@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/08 14:27:19 by tg                #+#    #+#             */
-/*   Updated: 2026/08/13 16:18:29 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/13 17:25:44 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,12 @@ struct						s_env_list
 	t_env					*head;
 
 	char					*(*get)(t_env_list *this, const char *key);
-	t_status				(*set)(t_env_list *this, const char *key,
-						const char *value);
-	t_status				(*unset)(t_env_list *this, const char *key);
 	char					**(*to_envp)(t_env_list *this);
 	void					(*destroy)(t_env_list *this);
 };
+t_status					env_list_set(t_env_list *this, const char *key,
+								const char *value);
+t_status					env_list_unset(t_env_list *this, const char *key);
 t_status					env_list_init(t_env_list *this, char **envp);
 
 /* implement functions */

@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/08 14:58:46 by tg                #+#    #+#             */
-/*   Updated: 2026/08/13 17:18:49 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/13 17:28:15 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ static t_status	env_list_init_from_envp(t_env_list *list, char **envp)
 		value = ft_strdup(equal + 1);
 		if (!value)
 			return (free(key), FAIL);
-		if (list->set(list, key, value) != OK)
+		if (env_list_set(list, key, value) != OK)
 			return (free(key), free(value), FAIL);
 	}
 	return (OK);
@@ -70,8 +70,6 @@ t_status	env_list_init(t_env_list *this, char **envp)
 {
 	this->destroy = destroy_impl;
 	this->get = env_list_get_impl;
-	this->set = env_list_set_impl;
-	this->unset = env_list_unset_impl;
 	this->to_envp = env_list_to_envp_impl;
 	this->head = NULL;
 	if (env_list_init_from_envp(this, envp) != OK)

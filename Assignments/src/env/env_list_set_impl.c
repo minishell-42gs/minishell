@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/09 10:48:39 by tg                #+#    #+#             */
-/*   Updated: 2026/08/13 17:17:10 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/13 17:27:34 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ static t_status	change_env_value(t_env *env, const char *new_value)
  * usage: env_list_set_impl(list, "PATH", "/usr/bin:/usr/bin:~/my_path")
  * return: OK
  */
-t_status	env_list_set_impl(t_env_list *this, const char *key,
+t_status	env_list_set(t_env_list *this, const char *key,
 		const char *value)
 {
 	t_env	*env;

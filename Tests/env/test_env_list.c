@@ -6,21 +6,10 @@ static t_env_list	g_env_list;
 static char			**g_env_array;
 static int			g_list_was_destroyed;
 
-/* 새 key/value 복사본의 소유권을 list->set에 넘긴다. */
+/* env_list_set을 호출해 key/value를 리스트에 추가하거나 갱신한다. */
 static t_status	set_pair(const char *key, const char *value)
 {
-	char		*key_copy;
-	char		*value_copy;
-	t_status	status;
-
-	key_copy = ft_strdup(key);
-	value_copy = ft_strdup(value);
-	if (key_copy == NULL || value_copy == NULL)
-		return (free(key_copy), free(value_copy), FAIL);
-	status = g_env_list.set(&g_env_list, key_copy, value_copy);
-	if (status != OK)
-		return (free(key_copy), free(value_copy), FAIL);
-	return (OK);
+	return (env_list_set(&g_env_list, key, value));
 }
 
 /* to_envp가 만든 NULL 종단 문자열 배열을 해제한다. */
@@ -132,15 +121,13 @@ void	test_env_list_init_accepts_empty_envp(void)
 	TEST_ASSERT_NULL(g_env_list.head);
 }
 
-/* 초기화 시 공개 함수 포인터를 모두 연결하는지 확인한다. */
-void	test_env_list_init_wires_all_operations(void)
+/* 초기화 시 구조체 내부의 함수 포인터를 연결하는지 확인한다. */
+void	test_env_list_init_wires_operations(void)
 {
 	char	*envp[] = {NULL};
 
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
 	TEST_ASSERT_NOT_NULL(g_env_list.get);
-	TEST_ASSERT_NOT_NULL(g_env_list.set);
-	TEST_ASSERT_NOT_NULL(g_env_list.unset);
 	TEST_ASSERT_NOT_NULL(g_env_list.to_envp);
 	TEST_ASSERT_NOT_NULL(g_env_list.destroy);
 }
@@ -207,8 +194,8 @@ void	test_env_list_set_rejects_null_arguments(void)
 	char	*envp[] = {"PATH=/bin", NULL};
 
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
-	TEST_ASSERT_EQUAL_INT(FAIL, g_env_list.set(&g_env_list, NULL, "value"));
-	TEST_ASSERT_EQUAL_INT(FAIL, g_env_list.set(&g_env_list, "KEY", NULL));
+	TEST_ASSERT_EQUAL_INT(FAIL, env_list_set(&g_env_list, NULL, "value"));
+	TEST_ASSERT_EQUAL_INT(FAIL, env_list_set(&g_env_list, "KEY", NULL));
 	TEST_ASSERT_EQUAL_STRING("/bin", g_env_list.get(&g_env_list, "PATH"));
 	TEST_ASSERT_NULL(g_env_list.head->next);
 }
@@ -219,7 +206,7 @@ void	test_env_list_unset_removes_middle_key(void)
 	char	*envp[] = {"FIRST=1", "MIDDLE=2", "LAST=3", NULL};
 
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
-	TEST_ASSERT_EQUAL_INT(OK, g_env_list.unset(&g_env_list, "MIDDLE"));
+	TEST_ASSERT_EQUAL_INT(OK, env_list_unset(&g_env_list, "MIDDLE"));
 	TEST_ASSERT_EQUAL_STRING("1", g_env_list.get(&g_env_list, "FIRST"));
 	TEST_ASSERT_NULL(g_env_list.get(&g_env_list, "MIDDLE"));
 	TEST_ASSERT_EQUAL_STRING("3", g_env_list.get(&g_env_list, "LAST"));
@@ -234,7 +221,7 @@ void	test_env_list_unset_updates_head(void)
 	char	*envp[] = {"FIRST=1", "LAST=2", NULL};
 
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
-	TEST_ASSERT_EQUAL_INT(OK, g_env_list.unset(&g_env_list, "FIRST"));
+	TEST_ASSERT_EQUAL_INT(OK, env_list_unset(&g_env_list, "FIRST"));
 	TEST_ASSERT_NOT_NULL(g_env_list.head);
 	TEST_ASSERT_EQUAL_STRING("LAST", g_env_list.head->key);
 	TEST_ASSERT_NULL(g_env_list.head->next);
@@ -246,7 +233,7 @@ void	test_env_list_unset_ignores_unknown_key(void)
 	char	*envp[] = {"PATH=/bin", NULL};
 
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
-	TEST_ASSERT_EQUAL_INT(OK, g_env_list.unset(&g_env_list, "MISSING"));
+	TEST_ASSERT_EQUAL_INT(OK, env_list_unset(&g_env_list, "MISSING"));
 	TEST_ASSERT_EQUAL_STRING("/bin", g_env_list.get(&g_env_list, "PATH"));
 	TEST_ASSERT_NULL(g_env_list.head->next);
 }
@@ -257,7 +244,7 @@ void	test_env_list_unset_rejects_null_key(void)
 	char	*envp[] = {"PATH=/bin", NULL};
 
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
-	TEST_ASSERT_EQUAL_INT(FAIL, g_env_list.unset(&g_env_list, NULL));
+	TEST_ASSERT_EQUAL_INT(FAIL, env_list_unset(&g_env_list, NULL));
 	TEST_ASSERT_EQUAL_STRING("/bin", g_env_list.get(&g_env_list, "PATH"));
 }
 
@@ -310,7 +297,7 @@ int	main(void)
 	RUN_TEST(test_env_list_init_ignores_entry_with_empty_key);
 	RUN_TEST(test_env_list_init_rejects_null_envp);
 	RUN_TEST(test_env_list_init_accepts_empty_envp);
-	RUN_TEST(test_env_list_init_wires_all_operations);
+	RUN_TEST(test_env_list_init_wires_operations);
 	RUN_TEST(test_env_list_get_returns_value_for_existing_key);
 	RUN_TEST(test_env_list_get_requires_exact_key_match);
 	RUN_TEST(test_env_list_get_returns_null_for_unknown_or_null_key);
