@@ -8,6 +8,7 @@ UNITY_SOURCE := Unity/src/unity.c
 TEST_RUNNER := scripts/run_tests.sh
 TEST_SOURCES := $(wildcard app/test_*.c cmd/test_*.c lexer/test_*.c \
 	parser/test_*.c parsing_facade/test_*.c token/test_*.c util/test_*.c)
+TEST_SOURCES += $(wildcard env/test_*.c)
 TEST_BINARIES := $(patsubst %.c,build/%,$(TEST_SOURCES))
 SANITIZER_BINARIES := $(patsubst %.c,build/sanitize/%,$(TEST_SOURCES))
 PRODUCTION_SOURCES := $(wildcard ../Assignments/src/*/*.c)
@@ -38,8 +39,9 @@ parser: $(filter build/parser/%,$(TEST_BINARIES))
 parsing_facade: $(filter build/parsing_facade/%,$(TEST_BINARIES))
 token: $(filter build/token/%,$(TEST_BINARIES))
 util: $(filter build/util/%,$(TEST_BINARIES))
+env: $(filter build/env/%,$(TEST_BINARIES))
 
-app cmd lexer parser parsing_facade token util:
+app cmd lexer parser parsing_facade token util env:
 	@$(TEST_RUNNER) $^
 
 sanitize: $(SANITIZER_BINARIES)
@@ -84,5 +86,5 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all test app cmd lexer parser parsing_facade token util sanitize \
+.PHONY: all test app cmd lexer parser parsing_facade token util env sanitize \
 	memory clean fclean re

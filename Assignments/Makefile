@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+         #
+#    By: tg <tg@student.42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/08/02 15:56:29 by hyuckwon         ###   ########.fr        #
+#    Updated: 2026/08/13 16:21:04 by tg               ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,6 +23,7 @@ MODULES := 	app \
 			parser \
 			parsing_facade \
 			token \
+			env \
 			util 
 INCS_DIR := include
 LIBFT_DIR := libft
@@ -44,8 +45,15 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/token/token_factory.c\
 		$(SRC_DIR)/token/token_list.c\
 		$(SRC_DIR)/token/token.c\
+		$(SRC_DIR)/env/env_list_get_impl.c\
+		$(SRC_DIR)/env/env_list_set_impl.c\
+		$(SRC_DIR)/env/env_list_to_envp_impl.c\
+		$(SRC_DIR)/env/env_list_unset_impl.c\
+		$(SRC_DIR)/env/env_list.c\
+		$(SRC_DIR)/env/env.c\
 		$(SRC_DIR)/util/free_split.c\
-		$(SRC_DIR)/util/is_blank.c
+		$(SRC_DIR)/util/is_blank.c \
+		$(SRC_DIR)/util/is_same_str.c
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
 LIBFT_NAME := libft.a
