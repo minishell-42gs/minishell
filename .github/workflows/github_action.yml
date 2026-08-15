@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - 'story/**'
+      - story
   pull_request:
     branches:
       - main
-      - 'story/**'
+      - story
 
 permissions:
   contents: read
