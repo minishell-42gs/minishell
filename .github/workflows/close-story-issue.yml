@@ -1,21 +1,47 @@
-name: Close Linked Issue on Story Merge
+name: Close Issues on Story Merge
 
 on:
   pull_request:
     types: [closed]
 
 jobs:
-  close-issue:
-    # PR이 실제로 머지되었고, 대상 브랜치(base branch) 이름이 story/로 시작하는 경우에만 실행
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.base.ref, 'story/')
+  close-linked-issues:
+    # 실제로 머지되었고, 대상 브랜치가 정확히 story일 때만 실행
+    if: >
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'story'
     runs-on: ubuntu-latest
+
     permissions:
       issues: write
-      pull-requests: read
+
     steps:
-      - name: Close linked issue
-        uses: peter-evans/close-issue@v3
-        with:
-          # PR 번호를 전달하면 action 내부에서 Linked Issue를 추적하여 Close 처리합니다.
-          issue-number: ${{ github.event.pull_request.number }}
-          comment: "Closed automatically via PR merge to `${{ github.event.pull_request.base.ref }}`."
+      - name: Close issues referenced by PR body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+
+          issue_numbers="$(
+            printf '%s\n' "$PR_BODY" |
+            perl -ne '
+              while (/\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*#([0-9]+)\b/ig) {
+                print "$1\n";
+              }
+            ' |
+            sort -un
+          )"
+
+          if [ -z "$issue_numbers" ]; then
+            echo "No issue-closing keyword found in the PR body."
+            exit 0
+          fi
+
+          while IFS= read -r issue_number; do
+            gh issue close "$issue_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --reason completed \
+              --comment "Closed automatically via PR merge to \`$BASE_BRANCH\`."
+          done <<< "$issue_numbers"
