@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/25 13:02:05 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/08/15 10:05:52 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/15 10:30:19 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ struct					s_app
 	char				**envp;
 	int					last_status;
 
-	t_status			(*run)(t_app *this);
+	t_status			(*run)(t_app * this);
 	void				(*destroy)(t_app *this);
 };
 
