@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/08 14:59:25 by tg                #+#    #+#             */
-/*   Updated: 2026/08/13 16:54:07 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/15 09:10:26 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ t_env	*create_env(const char *key, const char *value)
 	if (!new_node)
 		return (NULL);
 	if (env_init(new_node, key, value) != OK)
-		return (NULL);
+		return (free(new_node), NULL);
 	return (new_node);
 }
 
@@ -43,7 +43,7 @@ t_status	env_init(t_env *this, const char *key, const char *value)
 		return (FAIL);
 	this->value = ft_strdup(value);
 	if (this->value == NULL)
-		return (FAIL);
+		return (free(this->key), FAIL);
 	this->next = NULL;
 	return (OK);
 }

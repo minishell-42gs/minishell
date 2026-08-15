@@ -10,23 +10,19 @@ static int			g_nodes_initialized;
 /* get 구현만 검증할 수 있도록 노드를 직접 연결한 리스트를 만든다. */
 void	setUp(void)
 {
-	char	*path_key;
-	char	*path_value;
-	char	*extra_key;
-	char	*extra_value;
+	const char	*path_key;
+	const char	*path_value;
+	const char	*extra_key;
+	const char	*extra_value;
 
 	ft_memset(&g_env_list, 0, sizeof(g_env_list));
 	ft_memset(&g_path, 0, sizeof(g_path));
 	ft_memset(&g_path_extra, 0, sizeof(g_path_extra));
 	g_nodes_initialized = 0;
-	path_key = ft_strdup("PATH");
-	path_value = ft_strdup("/bin");
-	extra_key = ft_strdup("PATH_EXTRA");
-	extra_value = ft_strdup("/custom");
-	TEST_ASSERT_NOT_NULL(path_key);
-	TEST_ASSERT_NOT_NULL(path_value);
-	TEST_ASSERT_NOT_NULL(extra_key);
-	TEST_ASSERT_NOT_NULL(extra_value);
+	path_key = "PATH";
+	path_value = "/bin";
+	extra_key = "PATH_EXTRA";
+	extra_value = "/custom";
 	TEST_ASSERT_EQUAL_INT(OK, env_init(&g_path, path_key, path_value));
 	TEST_ASSERT_EQUAL_INT(OK, env_init(&g_path_extra, extra_key, extra_value));
 	g_path.next = &g_path_extra;

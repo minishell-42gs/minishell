@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/13 12:43:49 by tg                #+#    #+#             */
-/*   Updated: 2026/08/13 12:51:09 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/15 08:55:04 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,8 @@
 
 bool	is_same_str(const char *s1, const char *s2)
 {
-	int	len1;
-	int	len2;
+	size_t	len1;
+	size_t	len2;
 
 	if (s1 == NULL || s2 == NULL)
 		return (false);

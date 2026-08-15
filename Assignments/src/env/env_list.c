@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/08 14:58:46 by tg                #+#    #+#             */
-/*   Updated: 2026/08/13 17:28:15 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/15 09:23:59 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,10 @@ static t_status	env_list_init_from_envp(t_env_list *list, char **envp)
 		key = ft_substr(envp[i], 0, equal - envp[i]);
 		if (!key)
 			return (FAIL);
-		value = ft_strdup(equal + 1);
-		if (!value)
-			return (free(key), FAIL);
+		value = equal + 1;
 		if (env_list_set(list, key, value) != OK)
-			return (free(key), free(value), FAIL);
+			return (free(key), FAIL);
+		free(key);
 	}
 	return (OK);
 }
