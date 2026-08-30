@@ -28,7 +28,7 @@ static t_status	process_line(t_app *this, const char *line)
 	if (parsing_facade_parse(&this->parsing_facade, line, &cmd_list,
 			this->envp) != OK)
 		return (cmd_list.destroy(&cmd_list), FAIL);
-	if (this->executor.run(&this->executor, &cmd_list) != OK)
+	if (executor_run(&this->executor, &cmd_list) != OK)
 		return (cmd_list.destroy(&cmd_list), FAIL);
 	this->last_status = this->executor.last_status;
 	cmd_list.destroy(&cmd_list);

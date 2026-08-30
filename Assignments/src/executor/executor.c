@@ -31,7 +31,7 @@ static int	wait_and_code(pid_t pid)
 }
 
 /* v1: runs only the first command. Pipes come later. */
-static t_status	run_impl(t_executor *this, t_cmd_list *cmd_list)
+t_status	executor_run(t_executor *this, t_cmd_list *cmd_list)
 {
 	char	**envp;
 	pid_t	pid;
@@ -58,7 +58,6 @@ static void	destroy_impl(t_executor *this)
 
 t_status	executor_init(t_executor *this, t_env_list *env_list)
 {
-	this->run = run_impl;
 	this->destroy = destroy_impl;
 	this->env_list = env_list;
 	this->last_status = 0;
