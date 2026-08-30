@@ -24,6 +24,7 @@ MODULES := 	app \
 			parsing_facade \
 			token \
 			env \
+			executor \
 			util 
 INCS_DIR := include
 LIBFT_DIR := libft
@@ -53,7 +54,8 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/env/env.c\
 		$(SRC_DIR)/util/free_split.c\
 		$(SRC_DIR)/util/is_blank.c \
-		$(SRC_DIR)/util/is_same_str.c
+		$(SRC_DIR)/util/is_same_str.c\
+		$(SRC_DIR)/executor/executor.c
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))
 
 LIBFT_NAME := libft.a
