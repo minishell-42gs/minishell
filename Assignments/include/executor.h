@@ -30,8 +30,6 @@ struct						s_executor
 t_status					executor_init(t_executor *this,
 								t_env_list *env_list);
 
-/* run is a plain function: norminette 3.3.50 cannot parse
- * a two-argument function pointer (see Code Convention) */
 t_status					executor_run(t_executor *this,
 								t_cmd_list *cmd_list);
 
