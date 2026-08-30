@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing_facade.h                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 11:08:07 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 11:19:27 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/08/30 14:19:56 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ struct							s_parsing_facade
 t_status						parsing_facade_parse(t_parsing_facade *this,
 									const char *line, t_cmd_list *cmd_list,
 									char **envp);
-
 t_status						parsing_facade_init(t_parsing_facade *this);
 
 #endif // PARSING_FACADE_H

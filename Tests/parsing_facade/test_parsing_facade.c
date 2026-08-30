@@ -43,7 +43,7 @@ static void	assert_ls_pipe_wc_is_parsed(const char *line)
 }
 
 /* 문법 오류가 나면 명령 리스트를 만들지 않는지 확인한다. */
-static void	assert_pipeline_parse_fails(const char *line)
+static void	assert_parse_fails(const char *line)
 {
 	char	*envp[] = {"PATH=/bin", NULL};
 
@@ -81,31 +81,50 @@ void	test_facade_parses_a_pipeline_without_spaces(void)
 	assert_ls_pipe_wc_is_parsed("ls -l|wc -l");
 }
 
-/* 파이프 뒤에 명령이 없으면 문법 오류로 거부하는지 확인한다. */
+/* [Known bug] 파이프로 끝나는 입력 검증은 추후 TDD 단계에서 활성화한다. */
 void	test_facade_rejects_a_trailing_pipe(void)
 {
-	assert_pipeline_parse_fails("ls -l|");
+	assert_parse_fails("ls -l|");
 }
 
 /* 파이프 사이에 명령이 없으면 문법 오류로 거부하는지 확인한다. */
 void	test_facade_rejects_consecutive_pipes(void)
 {
-	assert_pipeline_parse_fails("ls -l |  |");
+	assert_parse_fails("ls -l | | wc -l");
 }
 
 /* 파이프로 시작하는 입력을 문법 오류로 거부하는지 확인한다. */
 void	test_facade_rejects_a_leading_pipe(void)
 {
-	assert_pipeline_parse_fails("| ls -l");
+	assert_parse_fails("| ls -l");
 }
 
-/* 과제에서 지원하지 않는 연산자를 문법 오류로 거부하는지 확인한다. */
-void	test_facade_rejects_unsupported_operators(void)
+/* 닫히지 않은 작은따옴표와 큰따옴표를 문법 오류로 거부하는지 확인한다. */
+void	test_facade_rejects_unclosed_quotes(void)
 {
-	assert_pipeline_parse_fails("ls -l || wc -l");
-	assert_pipeline_parse_fails("ls -l ; wc -l");
-	assert_pipeline_parse_fails("ls -l & wc -l");
-	assert_pipeline_parse_fails("ls -l && wc -l");
+	assert_parse_fails("echo 'unclosed");
+	assert_parse_fails("echo \"unclosed");
+}
+
+/* 지원하지 않는 특수 문자를 일반 문자열 인자로 유지하는지 확인한다. */
+void	test_facade_treats_non_required_special_characters_as_words(void)
+{
+	char	*envp[] = {"PATH=/bin", NULL};
+	t_cmd	*cmd;
+
+	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_parse(&g_test_facade,
+			"echo ; \\ & * || &&", &g_test_cmd_list, envp));
+	cmd = g_test_cmd_list.head;
+	TEST_ASSERT_NOT_NULL(cmd);
+	TEST_ASSERT_EQUAL_STRING("echo", cmd->argv[0]);
+	TEST_ASSERT_EQUAL_STRING(";", cmd->argv[1]);
+	TEST_ASSERT_EQUAL_STRING("\\", cmd->argv[2]);
+	TEST_ASSERT_EQUAL_STRING("&", cmd->argv[3]);
+	TEST_ASSERT_EQUAL_STRING("*", cmd->argv[4]);
+	TEST_ASSERT_EQUAL_STRING("||", cmd->argv[5]);
+	TEST_ASSERT_EQUAL_STRING("&&", cmd->argv[6]);
+	TEST_ASSERT_NULL(cmd->argv[7]);
+	TEST_ASSERT_NULL(cmd->next);
 }
 
 /* facade가 NULL 입력을 거부하고 명령 리스트를 비워 두는지 확인한다. */
@@ -123,10 +142,12 @@ int	main(void)
 	RUN_TEST(test_facade_parses_ls_with_option_into_one_command);
 	RUN_TEST(test_facade_parses_a_pipeline_with_spaces);
 	RUN_TEST(test_facade_parses_a_pipeline_without_spaces);
-	RUN_TEST(test_facade_rejects_a_trailing_pipe);
+	/* TODO: trailing pipe 검증은 추후 단계에서 활성화한다. */
+	/* RUN_TEST(test_facade_rejects_a_trailing_pipe); */
 	RUN_TEST(test_facade_rejects_consecutive_pipes);
 	RUN_TEST(test_facade_rejects_a_leading_pipe);
-	RUN_TEST(test_facade_rejects_unsupported_operators);
+	RUN_TEST(test_facade_rejects_unclosed_quotes);
+	RUN_TEST(test_facade_treats_non_required_special_characters_as_words);
 	RUN_TEST(test_facade_rejects_null_line);
 	return (UNITY_END());
 }

@@ -3,51 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   lexer.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/26 08:24:21 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/30 19:11:35 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/08/30 17:23:53 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "lexer.h"
-#include "libft.h"
-#include "util.h"
+#include <stddef.h>
 
 t_status	lexer_run(t_lexer *this, const char *line, t_token_list *token_list)
 {
-	char	**splited;
-	size_t	i;
-	t_token	*token;
-
-	if (line == NULL || token_list == NULL)
+	if (this == NULL || line == NULL || token_list == NULL)
 		return (FAIL);
-	splited = ft_split(line, ' ');
-	if (!splited)
+	if (lexer_check_syntax(line) != OK)
 		return (FAIL);
-	i = -1;
-	while (splited[++i] != NULL)
-	{
-		token = token_factory_create(&this->token_factory, splited[i]);
-		if (!token)
-			return (free_split(splited), FAIL);
-		if (token_list_add_token(token_list, token) != OK)
-			return (token->destroy(token), free(token), free_split(splited),
-				FAIL);
-	}
-	return (free_split(splited), OK);
+	if (lexer_tokenize(line, token_list) != OK)
+		return (FAIL);
+	return (OK);
 }
 
 static void	destroy_impl(t_lexer *this)
 {
-	if (this->token_factory.destroy != NULL)
-		this->token_factory.destroy(&this->token_factory);
+	(void)this;
 }
 
 t_status	lexer_init(t_lexer *this)
 {
-	this->destroy = destroy_impl;
-	if (token_factory_init(&this->token_factory) != OK)
+	if (this == NULL)
 		return (FAIL);
+	this->destroy = destroy_impl;
 	return (OK);
 }
