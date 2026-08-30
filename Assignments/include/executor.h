@@ -31,4 +31,7 @@ struct						s_executor
 t_status					executor_init(t_executor *this,
 								t_env_list *env_list);
 
+/* child process only, never returns */
+void						exec_child(t_cmd *cmd, char **envp);
+
 #endif // EXECUTOR_H
