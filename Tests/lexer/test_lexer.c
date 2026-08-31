@@ -35,6 +35,15 @@ static void	assert_line_stays_one_word(const char *line)
 	TEST_ASSERT_EQUAL_PTR(token, g_test_token_list.tail);
 }
 
+static t_token	*assert_token(t_token *token, t_token_type type,
+		const char *value)
+{
+	TEST_ASSERT_NOT_NULL(token);
+	TEST_ASSERT_EQUAL_INT(type, token->type);
+	TEST_ASSERT_EQUAL_STRING(value, token->value);
+	return (token->next);
+}
+
 /* lexer가 ls -l을 순서가 보존된 두 단어 토큰으로 만드는지 확인한다. */
 void	test_lexer_tokenizes_ls_with_option(void)
 {
@@ -123,6 +132,56 @@ void	test_lexer_handles_repeated_double_pipes(void)
 	assert_line_stays_one_word("||||");
 }
 
+/* 따옴표 안의 단일 파이프는 일반 단어의 일부로 유지해야 한다. */
+void	test_lexer_keeps_pipe_inside_double_quotes(void)
+{
+	t_token	*token;
+
+	TEST_ASSERT_EQUAL_INT(OK,
+		lexer_run(&g_test_lexer, "echo \"a|b\"", &g_test_token_list));
+	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
+	token = assert_token(token, TOKEN_WORD, "\"a|b\"");
+	TEST_ASSERT_NULL(token);
+}
+
+/* 따옴표 안의 공백은 단어 경계가 아니어야 한다. */
+void	test_lexer_keeps_space_inside_double_quotes(void)
+{
+	t_token	*token;
+
+	TEST_ASSERT_EQUAL_INT(OK,
+		lexer_run(&g_test_lexer, "echo \"a b\"", &g_test_token_list));
+	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
+	token = assert_token(token, TOKEN_WORD, "\"a b\"");
+	TEST_ASSERT_NULL(token);
+}
+
+/* 닫는 따옴표 뒤의 단일 파이프는 파이프 토큰으로 분리해야 한다. */
+void	test_lexer_splits_pipe_after_quoted_word(void)
+{
+	t_token	*token;
+
+	TEST_ASSERT_EQUAL_INT(OK,
+		lexer_run(&g_test_lexer, "echo \"a\"|cat", &g_test_token_list));
+	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
+	token = assert_token(token, TOKEN_WORD, "\"a\"");
+	token = assert_token(token, TOKEN_PIPE, "|");
+	token = assert_token(token, TOKEN_WORD, "cat");
+	TEST_ASSERT_NULL(token);
+}
+
+/* 이중 파이프는 지원 대상이 아니므로 단어로 유지해야 한다. */
+void	test_lexer_keeps_double_pipe_after_a_command(void)
+{
+	t_token	*token;
+
+	TEST_ASSERT_EQUAL_INT(OK,
+		lexer_run(&g_test_lexer, "echo ||", &g_test_token_list));
+	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
+	token = assert_token(token, TOKEN_WORD, "||");
+	TEST_ASSERT_NULL(token);
+}
+
 /* 빈 입력과 공백뿐인 입력에서 토큰을 생성하지 않는지 확인한다. */
 void	test_lexer_handles_empty_lines(void)
 {
@@ -155,6 +214,10 @@ int	main(void)
 	RUN_TEST(test_lexer_handles_double_pipe_at_start_of_word);
 	RUN_TEST(test_lexer_handles_double_pipe_at_end_of_word);
 	RUN_TEST(test_lexer_handles_repeated_double_pipes);
+	RUN_TEST(test_lexer_keeps_pipe_inside_double_quotes);
+	RUN_TEST(test_lexer_keeps_space_inside_double_quotes);
+	RUN_TEST(test_lexer_splits_pipe_after_quoted_word);
+	RUN_TEST(test_lexer_keeps_double_pipe_after_a_command);
 	RUN_TEST(test_lexer_handles_empty_lines);
 	RUN_TEST(test_lexer_rejects_null_arguments);
 	return (UNITY_END());

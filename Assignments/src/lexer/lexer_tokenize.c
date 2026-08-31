@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexer_tokenize.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
+/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/28 15:25:34 by taegokim          #+#    #+#             */
-/*   Updated: 2026/08/30 17:32:31 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/31 20:53:48 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,19 +25,24 @@ static t_token_type	classify_token_type(const char *str)
 static size_t	token_length(const char *cursor)
 {
 	size_t	length;
+	char	quote;
 
 	if (cursor[0] == '|' && cursor[1] != '|')
 		return (1);
+	quote = '\0';
 	length = 0;
-	while (cursor[length] != '\0' && cursor[length] != ' ')
+	while (cursor[length] != '\0')
 	{
-		if (cursor[length] == '|' && cursor[length + 1] == '|')
-		{
-			length += 2;
-			continue ;
-		}
-		if (cursor[length] == '|')
+		if (quote == '\0'
+			&& (cursor[length] == '\'' || cursor[length] == '"'))
+			quote = cursor[length];
+		else if (quote == cursor[length])
+			quote = '\0';
+		else if (quote == '\0' && (cursor[length] == ' '
+				|| (cursor[length] == '|' && cursor[length + 1] != '|')))
 			break ;
+		if (quote == '\0' && cursor[length] == '|')
+			length++;
 		length++;
 	}
 	return (length);

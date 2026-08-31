@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexer_check_syntax.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
+/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/30 15:06:06 by tg                #+#    #+#             */
-/*   Updated: 2026/08/30 16:58:57 by tg               ###   ########.fr       */
+/*   Updated: 2026/08/31 20:19:03 by taegokim         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,16 +31,11 @@
  */
 static bool	is_single_pipe(const char *line, size_t index)
 {
-	size_t	len;
-
-	if (line == NULL)
-		return (false);
-	len = ft_strlen(line);
 	if (line == NULL || line[index] != '|')
 		return (false);
 	if (index > 0 && line[index - 1] == '|')
 		return (false);
-	if (len > 0 && line[index + 1] == '|')
+	if (line[index + 1] == '|')
 		return (false);
 	return (true);
 }
