@@ -88,5 +88,5 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all test app cmd lexer parser parsing_facade token util env sanitize \
-	memory clean fclean re
+.PHONY: all test app cmd lexer parser parsing_facade token util env executor \
+	sanitize memory clean fclean re
