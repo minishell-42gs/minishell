@@ -6,7 +6,7 @@
 #    By: tg <tg@student.42.fr>                      +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/07/19 13:29:27 by taegokim          #+#    #+#              #
-#    Updated: 2026/08/13 16:21:04 by tg               ###   ########.fr        #
+#    Updated: 2026/08/30 18:03:47 by tg               ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -39,9 +39,10 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/cmd/cmd_list.c\
 		$(SRC_DIR)/cmd/cmd.c\
 		$(SRC_DIR)/lexer/lexer.c\
+		$(SRC_DIR)/lexer/lexer_tokenize.c\
+		$(SRC_DIR)/lexer/lexer_check_syntax.c\
 		$(SRC_DIR)/parser/parser.c\
 		$(SRC_DIR)/parsing_facade/parsing_facade.c\
-		$(SRC_DIR)/token/token_factory.c\
 		$(SRC_DIR)/token/token_list.c\
 		$(SRC_DIR)/token/token.c\
 		$(SRC_DIR)/env/env_list_get_impl.c\

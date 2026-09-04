@@ -93,16 +93,23 @@ make -C Tests sanitize
 하나의 테스트는 보통 Arrange–Act–Assert로 읽힌다.
 
 ```c
-void test_list_appends_one_token_as_head(void)
+void test_lexer_creates_a_word_token(void)
 {
+    t_lexer lexer;
+    t_token_list tokens;
     t_token *token;
 
-    token = token_factory_create(&g_factory, "echo"); /* Arrange */
-    TEST_ASSERT_NOT_NULL(token);
+    TEST_ASSERT_EQUAL_INT(OK, lexer_init(&lexer));
+    TEST_ASSERT_EQUAL_INT(OK, token_list_init(&tokens)); /* Arrange */
     TEST_ASSERT_EQUAL_INT(OK,
-        token_list_add_token(&g_tokens, token));       /* Act */
+        lexer_run(&lexer, "echo", &tokens));            /* Act */
 
-    TEST_ASSERT_EQUAL_PTR(token, g_tokens.head);       /* Assert */
+    token = tokens.head;
+    TEST_ASSERT_NOT_NULL(token);                         /* Assert */
+    TEST_ASSERT_EQUAL_STRING("echo", token->value);
+
+    tokens.destroy(&tokens);
+    lexer.destroy(&lexer);
 }
 ```
 
