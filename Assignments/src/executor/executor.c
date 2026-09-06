@@ -30,8 +30,10 @@ static int	wait_and_code(pid_t pid)
 	return (1);
 }
 
-/* v1: runs only the first command. Pipes come later. */
-t_status	executor_run(t_executor *this, t_cmd_list *cmd_list)
+/* v1: runs only the first command. Pipes come later.
+ * out_exit_status is left untouched on an empty list or on FAIL. */
+t_status	executor_run(t_executor *this, t_cmd_list *cmd_list,
+	int *out_exit_status)
 {
 	char	**envp;
 	pid_t	pid;
@@ -46,7 +48,7 @@ t_status	executor_run(t_executor *this, t_cmd_list *cmd_list)
 		return (free_split(envp), FAIL);
 	if (pid == 0)
 		exec_child(cmd_list->head, envp);
-	this->last_status = wait_and_code(pid);
+	*out_exit_status = wait_and_code(pid);
 	free_split(envp);
 	return (OK);
 }
@@ -60,6 +62,5 @@ t_status	executor_init(t_executor *this, t_env_list *env_list)
 {
 	this->destroy = destroy_impl;
 	this->env_list = env_list;
-	this->last_status = 0;
 	return (OK);
 }

@@ -22,7 +22,6 @@ typedef struct s_executor	t_executor;
 struct						s_executor
 {
 	t_env_list				*env_list;
-	int						last_status;
 
 	void					(*destroy)(t_executor *this);
 };
@@ -31,7 +30,7 @@ t_status					executor_init(t_executor *this,
 								t_env_list *env_list);
 
 t_status					executor_run(t_executor *this,
-								t_cmd_list *cmd_list);
+								t_cmd_list *cmd_list, int *out_exit_status);
 
 /* child process only, never returns */
 void						exec_child(t_cmd *cmd, char **envp);
