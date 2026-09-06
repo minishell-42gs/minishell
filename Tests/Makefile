@@ -6,6 +6,7 @@ SANITIZER_FLAGS := -fsanitize=address,undefined -fno-omit-frame-pointer
 
 UNITY_SOURCE := Unity/src/unity.c
 TEST_RUNNER := scripts/run_tests.sh
+INTEGRATION_RUNNER := integration/run_integration.sh
 TEST_SOURCES := $(wildcard app/test_*.c cmd/test_*.c lexer/test_*.c \
 	parser/test_*.c parsing_facade/test_*.c token/test_*.c util/test_*.c)
 TEST_SOURCES += $(wildcard env/test_*.c)
@@ -52,6 +53,10 @@ sanitize: $(SANITIZER_BINARIES)
 memory: $(TEST_BINARIES)
 	@$(TEST_RUNNER) --valgrind $(TEST_BINARIES)
 
+integration:
+	@$(MAKE) -C ../Assignments
+	@$(INTEGRATION_RUNNER)
+
 build/sanitize/%: %.c $(UNITY_SOURCE) $(SANITIZER_PRODUCTION_OBJECTS) \
 		$(SANITIZER_LIBFT_OBJECTS) $(HEADERS)
 	@mkdir -p $(dir $@)
@@ -89,4 +94,4 @@ fclean: clean
 re: fclean all
 
 .PHONY: all test app cmd lexer parser parsing_facade token util env executor \
-	sanitize memory clean fclean re
+	sanitize memory integration clean fclean re

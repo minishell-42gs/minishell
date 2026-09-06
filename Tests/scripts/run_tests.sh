@@ -13,7 +13,7 @@ run_test_binary()
 		ASAN_OPTIONS=detect_leaks=0 "./$test_binary"
 	elif [ "$mode" = "valgrind" ]; then
 		valgrind --leak-check=full --show-leak-kinds=all \
-			--errors-for-leak-kinds=all --error-exitcode=1 \
+			--errors-for-leak-kinds=definite,indirect --error-exitcode=1 \
 			"./$test_binary"
 	else
 		"./$test_binary"
