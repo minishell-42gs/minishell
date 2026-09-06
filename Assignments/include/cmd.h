@@ -70,6 +70,8 @@ t_cmd							*cmd_factory_create(t_cmd_factory *this,
 									t_token **token);
 t_status						cmd_factory_init(t_cmd_factory *this);
 
+char							*create_cmd_path(char *cmd_name, char **envp);
+
 // extern volatile sig_atomic_t	g_signal;
 
 #endif

@@ -13,6 +13,7 @@
 #ifndef APP_H
 # define APP_H
 # include "env.h"
+# include "executor.h"
 # include "parsing_facade.h"
 # include "status.h"
 
@@ -22,6 +23,7 @@ struct					s_app
 {
 	t_parsing_facade	parsing_facade;
 	t_env_list			env_list;
+	t_executor			executor;
 
 	char				**envp;
 	int					last_status;
