@@ -145,3 +145,34 @@ Unity 실패 메시지를 보면 먼저 다음 세 가지를 확인한다.
 4. 새 테스트와 전체 회귀 테스트가 통과하는지 확인한다.
 
 이렇게 남은 테스트는 같은 버그가 다시 들어오는 것을 막는 회귀 테스트가 된다.
+
+## 테스트의 층: 단위, 통합, 수동
+
+위에서 다룬 Unity 테스트는 프로덕션 함수를 직접 호출하는 단위 테스트다. 이 저장소에는
+그 위에 두 층이 더 있다.
+
+| 층 | 명령 | 검증 대상 | 잡는 것 |
+|---|---|---|---|
+| 단위 | `make -C Tests test` | 함수 하나의 계약 | assertion 실패 |
+| 단위 + 계측 | `make -C Tests sanitize` | 같은 테스트를 ASan/UBSan 으로 | 버퍼 오버런, use-after-free, 미정의 동작 |
+| 단위 + valgrind | `make -C Tests memory` | 같은 테스트를 valgrind 로 | 누수, 초기화 안 된 값 |
+| 통합 | `make -C Tests integration` | 제출용 `Assignments/minishell` 바이너리 | readline 루프부터 종료 코드까지, bash 와 비교 |
+| 수동 | `Tests/integration/MANUAL_CHECKLIST.md` | tty 가 있어야 보이는 동작 | 히스토리, 프롬프트 복귀, Ctrl+D |
+
+단위 테스트는 `main.c` 와 `app.c` 의 REPL 루프를 실행하지 않는다. `executor_run` 이
+127 을 돌려주는 것과 셸이 그 뒤에도 프롬프트를 다시 띄우는 것은 다른 층의 약속이다.
+그래서 세 층이 모두 초록이어야 "사용자에게 약속한 동작이 지켜진다"고 말할 수 있다.
+
+## 스토리를 시작할 때
+
+스토리 하나는 사용자에게 보이는 동작 하나를 약속한다. 그 약속을 먼저
+`run_integration.sh` 에 케이스로 적고 Red 를 확인한 뒤, 단위 테스트와 구현으로
+내려간다.
+
+1. `run_integration.sh` 끝에 `# vN: ...` 블록을 추가하고 새 케이스를 적는다.
+   `make -C Tests integration` 이 그 케이스에서 FAIL 하는지 본다.
+2. 필요한 함수마다 위의 Red–Green–Refactor 주기를 돈다.
+3. 통합 케이스가 PASS 로 바뀌면 스토리가 끝난다. tty 가 필요한 동작이 있으면
+   `MANUAL_CHECKLIST.md` 에 절을 추가한다.
+4. story 브랜치에 머지할 때 이전 케이스는 지우지 않는다. 다음 스토리가 이전 약속을
+   깨면 여기서 잡힌다.

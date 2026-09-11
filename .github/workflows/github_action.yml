@@ -41,3 +41,6 @@ jobs:
 
       - name: make 확인
         run: make -C Assignments fclean && make -C Assignments
+
+      - name: 통합 테스트
+        run: make -C Tests integration

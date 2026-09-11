@@ -23,6 +23,7 @@ void	test_app_init_stores_envp_and_resets_last_status(void)
 	TEST_ASSERT_EQUAL_INT(OK, app_init(&app, envp));
 	TEST_ASSERT_EQUAL_PTR(envp, app.envp);
 	TEST_ASSERT_EQUAL_INT(0, app.last_status);
+	app.destroy(&app);
 }
 
 /* 앱 초기화가 run과 destroy 함수 포인터를 배선하는지 확인한다. */
@@ -35,6 +36,7 @@ void	test_app_init_wires_run_and_destroy(void)
 	TEST_ASSERT_EQUAL_INT(OK, app_init(&app, envp));
 	TEST_ASSERT_NOT_NULL(app.run);
 	TEST_ASSERT_NOT_NULL(app.destroy);
+	app.destroy(&app);
 }
 
 /* 앱 초기화가 소유한 parsing_facade를 초기화하는지 확인한다. */
@@ -46,6 +48,7 @@ void	test_app_init_initializes_parsing_facade(void)
 	ft_memset(&app, 0, sizeof(t_app));
 	TEST_ASSERT_EQUAL_INT(OK, app_init(&app, envp));
 	TEST_ASSERT_NOT_NULL(app.parsing_facade.destroy);
+	app.destroy(&app);
 }
 
 /* 초기화된 앱을 destroy로 정리해도 크래시가 없는지 확인한다. */
