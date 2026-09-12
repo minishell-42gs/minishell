@@ -105,6 +105,19 @@ expect_not_found()
 	fi
 }
 
+# 셸이 직접 출력해야 하는 오류의 종료 코드·stderr 문구·stdout 비어 있음을 확인한다.
+# $1: 케이스 이름  $2: 입력  $3: 기대 종료 코드  $4: stderr에 있어야 할 고정 문구
+expect_shell_error()
+{
+	run_minishell "$2"
+	if [ "$ms_status" = "$3" ] && [ -z "$ms_out" ] \
+		&& grep -F -q "$4" "$TMP/ms_err"; then
+		pass "$1"
+	else
+		fail "$1" "exit=$ms_status stdout='$ms_out' stderr='$(cat "$TMP/ms_err")'"
+	fi
+}
+
 # ---------------------------------------------------------------------------
 # v1: 외부 명령 한 개 실행 (PR #21 env_list, #29 pipe parsing, #31 executor)
 # ---------------------------------------------------------------------------
@@ -128,6 +141,36 @@ expect_not_found 'PATH 에 없는 명령: 127' 'ls -a\n'
 same_as_bash 'PATH 무관하게 직접 경로는 실행됨' '/bin/ls -a\n'
 RUN_ENV="env -i"
 expect_not_found 'PATH 변수 자체가 없으면 127' 'ls -a\n'
+RUN_ENV=""
+
+# ---------------------------------------------------------------------------
+# v2: 셸이 직접 처리하는 오류 (error facade, parser)
+# ---------------------------------------------------------------------------
+
+expect_shell_error '마지막 pipe: syntax error + 2' 'echo |\n' 2 \
+	'syntax error near unexpected token'
+expect_status 'syntax error 뒤에도 셸이 계속 동작' 'echo |\n/bin/true\n' 0
+
+# ---------------------------------------------------------------------------
+# v3: command resolver 오류 구분 (Red — create_cmd_path 보완 전)
+# ---------------------------------------------------------------------------
+
+touch "$TMP/non_executable_cmd"
+chmod 0644 "$TMP/non_executable_cmd"
+mkdir "$TMP/directory_cmd"
+mkdir "$TMP/path_only"
+touch "$TMP/path_only/non_executable_cmd"
+chmod 0644 "$TMP/path_only/non_executable_cmd"
+
+expect_shell_error '비실행 직접 경로: Permission denied + 126' \
+	"$TMP/non_executable_cmd\n" 126 'Permission denied'
+expect_shell_error '없는 직접 경로: ENOENT + 127' \
+	"$TMP/missing_cmd\n" 127 'No such file or directory'
+expect_shell_error '직접 디렉터리: Is a directory + 126' \
+	"$TMP/directory_cmd\n" 126 'Is a directory'
+RUN_ENV="env PATH=$TMP/path_only"
+expect_shell_error 'PATH의 비실행 파일: Permission denied + 126' \
+	'non_executable_cmd\n' 126 'Permission denied'
 RUN_ENV=""
 
 # ---------------------------------------------------------------------------

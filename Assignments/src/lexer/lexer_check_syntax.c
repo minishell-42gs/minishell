@@ -17,11 +17,8 @@
 
 /*
  * - syntax error list
- * : '... or "...(unclosed quotes), ..| |..(check_empty_between_pipes)
- *    , |...(start with pipe)
- *
- * - [UB] Known bug
- * :  ... |(pipe ending line)
+ * : '... or "...(unclosed quotes), ..| |..(check_pipe_syntax)
+ *    , ... |(pipe ending line), |...(start with pipe)
  *
  * - NOT error, but treat it as JUST a STRING
  * : ;(semicolon), \(backlash), &(ampersand, background operation)
@@ -58,7 +55,7 @@ static bool	check_unclosed_quotes(const char *line)
 	return (in_single_quote || in_double_quote);
 }
 
-static bool	check_empty_between_pipes(const char *line)
+static bool	check_pipe_syntax(const char *line)
 {
 	size_t	index;
 	size_t	next;
@@ -87,22 +84,36 @@ static bool	check_empty_between_pipes(const char *line)
 	return (false);
 }
 
-static bool	check_start_with_pipe(const char *line)
+static const char	*check_boundary_pipe(const char *line)
 {
+	size_t	end;
+
 	if (line == NULL)
-		return (false);
+		return (NULL);
 	while (*line == ' ')
 		line++;
-	return (is_single_pipe(line, 0));
+	if (is_single_pipe(line, 0))
+		return ("|");
+	end = ft_strlen(line);
+	while (end > 0 && line[end - 1] == ' ')
+		end--;
+	if (end > 0 && is_single_pipe(line, end - 1))
+		return ("newline");
+	return (NULL);
 }
 
-t_status	lexer_check_syntax(const char *line)
+t_status	lexer_check_syntax(const char *line, const char **syntax_token)
 {
+	const char	*token;
+
+	token = check_boundary_pipe(line);
 	if (check_unclosed_quotes(line))
-		return (FAIL);
-	else if (check_empty_between_pipes(line))
-		return (FAIL);
-	else if (check_start_with_pipe(line))
+		token = "newline";
+	else if (token == NULL && check_pipe_syntax(line))
+		token = "|";
+	if (syntax_token != NULL)
+		*syntax_token = token;
+	if (token != NULL)
 		return (FAIL);
 	return (OK);
 }

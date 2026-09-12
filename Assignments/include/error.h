@@ -20,7 +20,8 @@ typedef enum e_error_type
 	ERR_ERRNO,
 	ERR_BUILTIN,
 	ERR_AMBIGUOUS_REDIR,
-	ERR_HEREDOC_EOF
+	ERR_HEREDOC_EOF,
+	ERR_INTERNAL
 }						t_error_type;
 
 typedef struct s_error_req
@@ -55,9 +56,22 @@ typedef struct s_error_req
 		{
 			const char	*delimiter;
 		} s_heredoc_eof;
+		struct
+		{
+			const char	*detail;
+		} s_internal;
 	} u_data;
 }						t_error_req;
 
 void					error_report(int *status, const t_error_req *req);
+
+/* internal */
+void					error_print_syntax(const t_error_req *req);
+void					error_print_command(const t_error_req *req);
+void					error_print_system(const t_error_req *req);
+void					error_print_builtin(const t_error_req *req);
+void					error_print_redirection(const t_error_req *req);
+void					error_print_heredoc(const t_error_req *req);
+void					error_print_internal(const t_error_req *req);
 
 #endif // ERROR_H

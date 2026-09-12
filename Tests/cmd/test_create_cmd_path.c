@@ -217,25 +217,28 @@ void	test_create_cmd_path_returns_an_executable_relative_path(void)
 	TEST_ASSERT_EQUAL_STRING("bin/" TEST_COMMAND, g_test_cmd_path);
 }
 
-/* 존재하지만 실행 권한이 없는 직접 경로를 NULL로 거부하는지 확인한다.
- * 0644 파일을 실행 파일로 오인해 경로를 반환하면, 실제 execve 단계에서
- * 실행 권한 오류가 나고 경로 검색 함수의 결과만으로는 오류를 판별하기 어렵다.
+/* 직접 경로는 실행 권한이 없어도 execve까지 전달하는지 확인한다.
+ * 직접 경로의 권한 오류는 "명령을 찾지 못함"이 아니라 execve의 EACCES로
+ * 보고해야 하므로, resolver가 access 실패를 NULL로 뭉개면 안 된다.
  */
-void	test_create_cmd_path_rejects_a_non_executable_direct_path(void)
+void	test_create_cmd_path_preserves_a_non_executable_direct_path(void)
 {
 	make_test_directory(g_test_dir_a, &g_test_dir_a_created);
 	g_test_file_a = create_fixture_file(g_test_dir_a, TEST_COMMAND, 0644);
 	TEST_ASSERT_NOT_NULL(g_test_file_a);
-	TEST_ASSERT_NULL(create_cmd_path(g_test_file_a, NULL));
+	g_test_cmd_path = create_cmd_path(g_test_file_a, NULL);
+	TEST_ASSERT_NOT_NULL(g_test_cmd_path);
+	TEST_ASSERT_EQUAL_STRING(g_test_file_a, g_test_cmd_path);
 }
 
-/* 직접 경로는 PATH에 같은 명령이 있어도 PATH 검색으로 대체하지 않는지 확인한다.
- * "/missing/fixture_cmd"가 실패했는데 PATH의 다른 fixture_cmd를 반환하면,
- * 사용자가 지정한 파일이 아닌 전혀 다른 프로그램을 실행하게 된다.
+/* 없는 직접 경로도 PATH 검색으로 대체하지 않고 execve까지 전달하는지 확인한다.
+ * execve의 ENOENT를 통해 "No such file or directory"를 출력해야 하며,
+ * NULL로 돌려 command not found로 바꾸면 오류 원인이 사라진다.
  */
-void	test_create_cmd_path_does_not_fallback_to_path_for_a_direct_path(void)
+void	test_create_cmd_path_preserves_a_missing_direct_path(void)
 {
 	char	*envp[2];
+	char	*missing_path;
 
 	make_test_directory(g_test_dir_a, &g_test_dir_a_created);
 	g_test_file_a = create_fixture_file(g_test_dir_a, TEST_COMMAND, 0755);
@@ -244,7 +247,10 @@ void	test_create_cmd_path_does_not_fallback_to_path_for_a_direct_path(void)
 	TEST_ASSERT_NOT_NULL(g_test_path_env);
 	envp[0] = g_test_path_env;
 	envp[1] = NULL;
-	TEST_ASSERT_NULL(create_cmd_path("/missing/fixture_cmd", envp));
+	missing_path = "/missing/fixture_cmd";
+	g_test_cmd_path = create_cmd_path(missing_path, envp);
+	TEST_ASSERT_NOT_NULL(g_test_cmd_path);
+	TEST_ASSERT_EQUAL_STRING(missing_path, g_test_cmd_path);
 }
 
 /* PATH에 있는 첫 번째 실행 파일을 반환하는지 확인한다.
@@ -311,15 +317,24 @@ void	test_create_cmd_path_rejects_an_empty_command_name(void)
 	TEST_ASSERT_NULL(create_cmd_path("", envp));
 }
 
-/* PATH가 빈 문자열이면 순회할 디렉터리가 없어 NULL을 반환하는지 확인한다.
- * PATH=를 현재 디렉터리로 잘못 해석하면, 의도하지 않은 로컬 실행 파일을
- * 실행하게 되므로 PATH unset과 구분되는 빈 값의 의미가 깨진다.
+/* 빈 PATH 항목은 현재 디렉터리를 뜻하므로 PATH=에서도 명령을 찾는지 확인한다.
+ * PATH 자체가 없는 경우와 PATH=는 shell에서 서로 다른 의미다.
  */
-void	test_create_cmd_path_returns_null_for_an_empty_path(void)
+void	test_create_cmd_path_searches_current_directory_for_an_empty_path(void)
 {
-	char	*envp[] = {"PATH=", NULL};
+	assert_current_directory_is_searched("");
+}
 
-	TEST_ASSERT_NULL(create_cmd_path(TEST_COMMAND, envp));
+/* PATH 첫 항목이 비어 있으면 현재 디렉터리를 가장 먼저 검색하는지 확인한다. */
+void	test_create_cmd_path_searches_leading_empty_path_entry(void)
+{
+	assert_current_directory_is_searched(":/no/such/directory");
+}
+
+/* PATH 마지막 항목이 비어 있으면 현재 디렉터리를 마지막에 검색하는지 확인한다. */
+void	test_create_cmd_path_searches_trailing_empty_path_entry(void)
+{
+	assert_current_directory_is_searched("/no/such/directory:");
 }
 
 /* 존재하지 않는 PATH 디렉터리를 조용히 건너뛰고 다음 디렉터리를 검색하는지 확인한다.
@@ -375,13 +390,15 @@ int	main(void)
 	UNITY_BEGIN();
 	RUN_TEST(test_create_cmd_path_returns_an_executable_direct_path);
 	RUN_TEST(test_create_cmd_path_returns_an_executable_relative_path);
-	RUN_TEST(test_create_cmd_path_rejects_a_non_executable_direct_path);
-	RUN_TEST(test_create_cmd_path_does_not_fallback_to_path_for_a_direct_path);
+	RUN_TEST(test_create_cmd_path_preserves_a_non_executable_direct_path);
+	RUN_TEST(test_create_cmd_path_preserves_a_missing_direct_path);
 	RUN_TEST(test_create_cmd_path_uses_the_first_executable_in_path_order);
 	RUN_TEST(test_create_cmd_path_skips_a_non_executable_path_candidate);
 	RUN_TEST(test_create_cmd_path_resolves_a_relative_path_from_the_current_directory);
 	RUN_TEST(test_create_cmd_path_rejects_an_empty_command_name);
-	RUN_TEST(test_create_cmd_path_returns_null_for_an_empty_path);
+	RUN_TEST(test_create_cmd_path_searches_current_directory_for_an_empty_path);
+	RUN_TEST(test_create_cmd_path_searches_leading_empty_path_entry);
+	RUN_TEST(test_create_cmd_path_searches_trailing_empty_path_entry);
 	RUN_TEST(test_create_cmd_path_skips_a_missing_path_directory);
 	RUN_TEST(test_create_cmd_path_returns_null_when_no_path_entry_matches);
 	RUN_TEST(test_create_cmd_path_returns_null_without_a_path_environment);

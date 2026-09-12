@@ -26,7 +26,7 @@ static void	assert_line_stays_one_word(const char *line)
 	t_token	*token;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, line, &g_test_token_list));
+		lexer_run(&g_test_lexer, line, &g_test_token_list, NULL));
 	token = g_test_token_list.head;
 	TEST_ASSERT_NOT_NULL(token);
 	TEST_ASSERT_EQUAL_INT(TOKEN_WORD, token->type);
@@ -51,7 +51,7 @@ void	test_lexer_tokenizes_ls_with_option(void)
 	t_token	*second;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "ls -l", &g_test_token_list));
+		lexer_run(&g_test_lexer, "ls -l", &g_test_token_list, NULL));
 	first = g_test_token_list.head;
 	TEST_ASSERT_NOT_NULL(first);
 	second = first->next;
@@ -70,7 +70,7 @@ void	test_lexer_ignores_repeated_spaces_between_arguments(void)
 	t_token	*second;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "  ls   -l  ", &g_test_token_list));
+		lexer_run(&g_test_lexer, "  ls   -l  ", &g_test_token_list, NULL));
 	first = g_test_token_list.head;
 	TEST_ASSERT_NOT_NULL(first);
 	second = first->next;
@@ -88,7 +88,7 @@ void	test_lexer_splits_words_around_a_pipe_without_spaces(void)
 	t_token	*third;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "ls|wc", &g_test_token_list));
+		lexer_run(&g_test_lexer, "ls|wc", &g_test_token_list, NULL));
 	first = g_test_token_list.head;
 	TEST_ASSERT_NOT_NULL(first);
 	second = first->next;
@@ -138,7 +138,7 @@ void	test_lexer_keeps_pipe_inside_double_quotes(void)
 	t_token	*token;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "echo \"a|b\"", &g_test_token_list));
+		lexer_run(&g_test_lexer, "echo \"a|b\"", &g_test_token_list, NULL));
 	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
 	token = assert_token(token, TOKEN_WORD, "\"a|b\"");
 	TEST_ASSERT_NULL(token);
@@ -150,7 +150,7 @@ void	test_lexer_keeps_space_inside_double_quotes(void)
 	t_token	*token;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "echo \"a b\"", &g_test_token_list));
+		lexer_run(&g_test_lexer, "echo \"a b\"", &g_test_token_list, NULL));
 	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
 	token = assert_token(token, TOKEN_WORD, "\"a b\"");
 	TEST_ASSERT_NULL(token);
@@ -162,7 +162,7 @@ void	test_lexer_splits_pipe_after_quoted_word(void)
 	t_token	*token;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "echo \"a\"|cat", &g_test_token_list));
+		lexer_run(&g_test_lexer, "echo \"a\"|cat", &g_test_token_list, NULL));
 	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
 	token = assert_token(token, TOKEN_WORD, "\"a\"");
 	token = assert_token(token, TOKEN_PIPE, "|");
@@ -176,7 +176,7 @@ void	test_lexer_keeps_double_pipe_after_a_command(void)
 	t_token	*token;
 
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "echo ||", &g_test_token_list));
+		lexer_run(&g_test_lexer, "echo ||", &g_test_token_list, NULL));
 	token = assert_token(g_test_token_list.head, TOKEN_WORD, "echo");
 	token = assert_token(token, TOKEN_WORD, "||");
 	TEST_ASSERT_NULL(token);
@@ -186,9 +186,9 @@ void	test_lexer_keeps_double_pipe_after_a_command(void)
 void	test_lexer_handles_empty_lines(void)
 {
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "", &g_test_token_list));
+		lexer_run(&g_test_lexer, "", &g_test_token_list, NULL));
 	TEST_ASSERT_EQUAL_INT(OK,
-		lexer_run(&g_test_lexer, "   ", &g_test_token_list));
+		lexer_run(&g_test_lexer, "   ", &g_test_token_list, NULL));
 	TEST_ASSERT_NULL(g_test_token_list.head);
 	TEST_ASSERT_NULL(g_test_token_list.tail);
 }
@@ -197,8 +197,8 @@ void	test_lexer_handles_empty_lines(void)
 void	test_lexer_rejects_null_arguments(void)
 {
 	TEST_ASSERT_EQUAL_INT(FAIL,
-		lexer_run(&g_test_lexer, NULL, &g_test_token_list));
-	TEST_ASSERT_EQUAL_INT(FAIL, lexer_run(&g_test_lexer, "ls", NULL));
+		lexer_run(&g_test_lexer, NULL, &g_test_token_list, NULL));
+	TEST_ASSERT_EQUAL_INT(FAIL, lexer_run(&g_test_lexer, "ls", NULL, NULL));
 	TEST_ASSERT_NULL(g_test_token_list.head);
 }
 

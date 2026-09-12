@@ -4,7 +4,7 @@
 호스트 기반 단위 테스트 공간이다. Unity는 C용 테스트 프레임워크이며, assertion
 결과를 모아 보여 주고 테스트가 하나라도 실패하면 0이 아닌 종료 코드를 반환한다.
 
-현재 테스트 대상은 `Assignments/src/`의 `app`, `cmd`, `lexer`, `parser`,
+현재 테스트 대상은 `Assignments/src/`의 `app`, `cmd`, `error`, `lexer`, `parser`,
 `parsing_facade`, `token`, `util` 모듈이다. `main.c`는 테스트 실행 파일과
 진입점이 충돌하므로 링크하지 않는다.
 
@@ -17,6 +17,7 @@ Tests/
 │   ├── test_cmd.c
 │   ├── test_cmd_factory.c
 │   └── test_cmd_list.c
+├── error/test_error.c
 ├── lexer/test_lexer.c
 ├── parser/test_parser.c
 ├── parsing_facade/test_parsing_facade.c
@@ -49,6 +50,7 @@ make -C Tests test
 ```sh
 // 예시
 make -C Tests cmd
+make -C Tests error
 make -C Tests lexer
 make -C Tests parser
 make -C Tests token

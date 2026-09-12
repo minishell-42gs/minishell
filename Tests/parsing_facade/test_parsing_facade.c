@@ -8,7 +8,7 @@ static t_cmd_list		g_test_cmd_list;
 /* 각 테스트 전에 parsing facade와 명령 리스트를 초기화한다. */
 void	setUp(void)
 {
-	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_init(&g_test_facade));
+	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_init(&g_test_facade, NULL));
 	TEST_ASSERT_EQUAL_INT(OK, cmd_list_init(&g_test_cmd_list));
 }
 
@@ -23,12 +23,12 @@ void	tearDown(void)
 /* ls -l | wc -l 파이프라인이 순서대로 연결된 두 명령이 되는지 확인한다. */
 static void	assert_ls_pipe_wc_is_parsed(const char *line)
 {
-	char	*envp[] = {"PATH=/bin", NULL};
 	t_cmd	*first;
 	t_cmd	*second;
+	t_parse_outcome	outcome;
 
-	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_parse(&g_test_facade, line,
-			&g_test_cmd_list, envp));
+	outcome = parsing_facade_parse(&g_test_facade, line, &g_test_cmd_list);
+	TEST_ASSERT_EQUAL_INT(PARSE_OK, outcome.result);
 	first = g_test_cmd_list.head;
 	TEST_ASSERT_NOT_NULL(first);
 	second = first->next;
@@ -45,21 +45,24 @@ static void	assert_ls_pipe_wc_is_parsed(const char *line)
 /* 문법 오류가 나면 명령 리스트를 만들지 않는지 확인한다. */
 static void	assert_parse_fails(const char *line)
 {
-	char	*envp[] = {"PATH=/bin", NULL};
+	t_parse_outcome	outcome;
 
-	TEST_ASSERT_EQUAL_INT(FAIL, parsing_facade_parse(&g_test_facade, line,
-			&g_test_cmd_list, envp));
+	outcome = parsing_facade_parse(&g_test_facade, line, &g_test_cmd_list);
+	TEST_ASSERT_EQUAL_INT(PARSE_SYNTAX_ERROR, outcome.result);
+	TEST_ASSERT_TRUE(outcome.has_error_req);
+	TEST_ASSERT_EQUAL_INT(ERR_SYNTAX, outcome.error.type);
+	TEST_ASSERT_EQUAL_INT(2, outcome.error.exit_code);
 	TEST_ASSERT_NULL(g_test_cmd_list.head);
 }
 
 /* facade가 ls -l 입력을 실행 가능한 단일 argv로 변환하는지 확인한다. */
 void	test_facade_parses_ls_with_option_into_one_command(void)
 {
-	char	*envp[] = {"PATH=/bin", NULL};
 	t_cmd	*cmd;
+	t_parse_outcome	outcome;
 
-	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_parse(&g_test_facade,
-			"ls -l", &g_test_cmd_list, envp));
+	outcome = parsing_facade_parse(&g_test_facade, "ls -l", &g_test_cmd_list);
+	TEST_ASSERT_EQUAL_INT(PARSE_OK, outcome.result);
 	cmd = g_test_cmd_list.head;
 	TEST_ASSERT_NOT_NULL(cmd);
 	TEST_ASSERT_EQUAL_STRING("ls", cmd->argv[0]);
@@ -81,7 +84,7 @@ void	test_facade_parses_a_pipeline_without_spaces(void)
 	assert_ls_pipe_wc_is_parsed("ls -l|wc -l");
 }
 
-/* [Known bug] 파이프로 끝나는 입력 검증은 추후 TDD 단계에서 활성화한다. */
+/* 파이프로 끝나는 입력을 문법 오류로 거부하는지 확인한다. */
 void	test_facade_rejects_a_trailing_pipe(void)
 {
 	assert_parse_fails("ls -l|");
@@ -109,11 +112,12 @@ void	test_facade_rejects_unclosed_quotes(void)
 /* 지원하지 않는 특수 문자를 일반 문자열 인자로 유지하는지 확인한다. */
 void	test_facade_treats_non_required_special_characters_as_words(void)
 {
-	char	*envp[] = {"PATH=/bin", NULL};
 	t_cmd	*cmd;
+	t_parse_outcome	outcome;
 
-	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_parse(&g_test_facade,
-			"echo ; \\ & * || &&", &g_test_cmd_list, envp));
+	outcome = parsing_facade_parse(&g_test_facade,
+			"echo ; \\ & * || &&", &g_test_cmd_list);
+	TEST_ASSERT_EQUAL_INT(PARSE_OK, outcome.result);
 	cmd = g_test_cmd_list.head;
 	TEST_ASSERT_NOT_NULL(cmd);
 	TEST_ASSERT_EQUAL_STRING("echo", cmd->argv[0]);
@@ -130,8 +134,12 @@ void	test_facade_treats_non_required_special_characters_as_words(void)
 /* facade가 NULL 입력을 거부하고 명령 리스트를 비워 두는지 확인한다. */
 void	test_facade_rejects_null_line(void)
 {
-	TEST_ASSERT_EQUAL_INT(FAIL, parsing_facade_parse(&g_test_facade,
-			NULL, &g_test_cmd_list, NULL));
+	t_parse_outcome	outcome;
+
+	outcome = parsing_facade_parse(&g_test_facade, NULL, &g_test_cmd_list);
+	TEST_ASSERT_EQUAL_INT(PARSE_FATAL_ERROR, outcome.result);
+	TEST_ASSERT_TRUE(outcome.has_error_req);
+	TEST_ASSERT_EQUAL_INT(ERR_INTERNAL, outcome.error.type);
 	TEST_ASSERT_NULL(g_test_cmd_list.head);
 }
 
@@ -142,8 +150,7 @@ int	main(void)
 	RUN_TEST(test_facade_parses_ls_with_option_into_one_command);
 	RUN_TEST(test_facade_parses_a_pipeline_with_spaces);
 	RUN_TEST(test_facade_parses_a_pipeline_without_spaces);
-	/* TODO: trailing pipe 검증은 추후 단계에서 활성화한다. */
-	/* RUN_TEST(test_facade_rejects_a_trailing_pipe); */
+	RUN_TEST(test_facade_rejects_a_trailing_pipe);
 	RUN_TEST(test_facade_rejects_consecutive_pipes);
 	RUN_TEST(test_facade_rejects_a_leading_pipe);
 	RUN_TEST(test_facade_rejects_unclosed_quotes);

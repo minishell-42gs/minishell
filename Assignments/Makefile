@@ -24,6 +24,7 @@ MODULES := 	app \
 			parsing_facade \
 			token \
 			env \
+			error \
 			executor \
 			util 
 INCS_DIR := include
@@ -53,6 +54,13 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/env/env_list_unset_impl.c\
 		$(SRC_DIR)/env/env_list.c\
 		$(SRC_DIR)/env/env.c\
+		$(SRC_DIR)/error/error.c\
+		$(SRC_DIR)/error/error_syntax.c\
+		$(SRC_DIR)/error/error_command.c\
+		$(SRC_DIR)/error/error_system.c\
+		$(SRC_DIR)/error/error_builtin.c\
+		$(SRC_DIR)/error/error_redirection.c\
+		$(SRC_DIR)/error/error_internal.c\
 		$(SRC_DIR)/util/free_split.c\
 		$(SRC_DIR)/util/is_blank.c \
 		$(SRC_DIR)/util/is_same_str.c\
