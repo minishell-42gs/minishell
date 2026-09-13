@@ -12,6 +12,7 @@
 
 #include "app.h"
 #include "cmd.h"
+#include "error.h"
 #include "libft.h"
 #include "status.h"
 #include "util.h"
@@ -21,13 +22,25 @@
 
 static t_status	process_line(t_app *this, const char *line)
 {
-	t_cmd_list	cmd_list;
+	t_cmd_list			cmd_list;
+	t_parse_outcome		parse_outcome;
 
 	if (cmd_list_init(&cmd_list) != OK)
 		return (FAIL);
-	if (parsing_facade_parse(&this->parsing_facade, line, &cmd_list,
-			this->envp) != OK)
+	parse_outcome = parsing_facade_parse(&this->parsing_facade, line,
+			&cmd_list);
+	if (parse_outcome.has_error_req)
+	{
+		error_report(&this->last_status, &parse_outcome.error);
+		if (parse_outcome.result == PARSE_SYNTAX_ERROR)
+			return (cmd_list.destroy(&cmd_list), OK);
+	}
+	if (parse_outcome.result == PARSE_FATAL_ERROR)
+	{
+		if (parse_outcome.has_error_req == false)
+			this->last_status = 1;
 		return (cmd_list.destroy(&cmd_list), FAIL);
+	}
 	if (executor_run(&this->executor, &cmd_list, &this->last_status) != OK)
 		return (cmd_list.destroy(&cmd_list), FAIL);
 	cmd_list.destroy(&cmd_list);
@@ -71,9 +84,9 @@ t_status	app_init(t_app *this, char **envp)
 	this->last_status = 0;
 	this->run = run_impl;
 	this->destroy = destroy_impl;
-	if (parsing_facade_init(&this->parsing_facade) != OK)
-		return (FAIL);
 	if (env_list_init(&this->env_list, envp) != OK)
+		return (FAIL);
+	if (parsing_facade_init(&this->parsing_facade, &this->env_list) != OK)
 		return (FAIL);
 	if (executor_init(&this->executor, &this->env_list) != OK)
 		return (FAIL);

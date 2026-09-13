@@ -22,6 +22,7 @@ void	test_app_init_stores_envp_and_resets_last_status(void)
 	app.last_status = 42;
 	TEST_ASSERT_EQUAL_INT(OK, app_init(&app, envp));
 	TEST_ASSERT_EQUAL_PTR(envp, app.envp);
+	TEST_ASSERT_EQUAL_PTR(&app.env_list, app.parsing_facade.env_list);
 	TEST_ASSERT_EQUAL_INT(0, app.last_status);
 	app.destroy(&app);
 }

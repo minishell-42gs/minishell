@@ -7,7 +7,7 @@ SANITIZER_FLAGS := -fsanitize=address,undefined -fno-omit-frame-pointer
 UNITY_SOURCE := Unity/src/unity.c
 TEST_RUNNER := scripts/run_tests.sh
 INTEGRATION_RUNNER := integration/run_integration.sh
-TEST_SOURCES := $(wildcard app/test_*.c cmd/test_*.c lexer/test_*.c \
+TEST_SOURCES := $(wildcard app/test_*.c cmd/test_*.c error/test_*.c lexer/test_*.c \
 	parser/test_*.c parsing_facade/test_*.c token/test_*.c util/test_*.c)
 TEST_SOURCES += $(wildcard env/test_*.c)
 TEST_SOURCES += $(wildcard executor/test_*.c)
@@ -36,6 +36,7 @@ test: $(TEST_BINARIES)
 
 app: $(filter build/app/%,$(TEST_BINARIES))
 cmd: $(filter build/cmd/%,$(TEST_BINARIES))
+error: $(filter build/error/%,$(TEST_BINARIES))
 lexer: $(filter build/lexer/%,$(TEST_BINARIES))
 parser: $(filter build/parser/%,$(TEST_BINARIES))
 parsing_facade: $(filter build/parsing_facade/%,$(TEST_BINARIES))
@@ -44,7 +45,7 @@ util: $(filter build/util/%,$(TEST_BINARIES))
 env: $(filter build/env/%,$(TEST_BINARIES))
 executor: $(filter build/executor/%,$(TEST_BINARIES))
 
-app cmd lexer parser parsing_facade token util env executor:
+app cmd error lexer parser parsing_facade token util env executor:
 	@$(TEST_RUNNER) $^
 
 sanitize: $(SANITIZER_BINARIES)
@@ -93,5 +94,5 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all test app cmd lexer parser parsing_facade token util env executor \
+.PHONY: all test app cmd error lexer parser parsing_facade token util env executor \
 	sanitize memory integration clean fclean re

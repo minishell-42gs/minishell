@@ -23,12 +23,13 @@ struct					s_lexer
 	void				(*destroy)(t_lexer *this);
 };
 t_status				lexer_run(t_lexer *this, const char *line,
-							t_token_list *tokens);
+							t_token_list *tokens, const char **syntax_token);
 t_status				lexer_init(t_lexer *this);
 
 /* internal */
 t_status				lexer_tokenize(const char *line,
 							t_token_list *token_list);
-t_status				lexer_check_syntax(const char *line);
+t_status				lexer_check_syntax(const char *line,
+							const char **syntax_token);
 
 #endif // LEXER_H

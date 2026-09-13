@@ -13,11 +13,14 @@
 #include "lexer.h"
 #include <stddef.h>
 
-t_status	lexer_run(t_lexer *this, const char *line, t_token_list *token_list)
+t_status	lexer_run(t_lexer *this, const char *line, t_token_list *token_list,
+		const char **syntax_token)
 {
+	if (syntax_token != NULL)
+		*syntax_token = NULL;
 	if (this == NULL || line == NULL || token_list == NULL)
 		return (FAIL);
-	if (lexer_check_syntax(line) != OK)
+	if (lexer_check_syntax(line, syntax_token) != OK)
 		return (FAIL);
 	if (lexer_tokenize(line, token_list) != OK)
 		return (FAIL);

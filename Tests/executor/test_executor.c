@@ -18,7 +18,7 @@ void	setUp(void)
 	char	*envp[] = {"PATH=/bin:/usr/bin", NULL};
 
 	g_status = 0;
-	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_init(&g_facade));
+	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_init(&g_facade, NULL));
 	TEST_ASSERT_EQUAL_INT(OK, env_list_init(&g_env_list, envp));
 	TEST_ASSERT_EQUAL_INT(OK, executor_init(&g_executor, &g_env_list));
 	TEST_ASSERT_EQUAL_INT(OK, cmd_list_init(&g_cmd_list));
@@ -39,10 +39,10 @@ void	tearDown(void)
  * fork 전에 stdout을 비워야 자식이 Unity 출력 버퍼를 복제해 두 번 찍지 않는다. */
 static t_status	run_line(const char *line)
 {
-	char	*envp[] = {"PATH=/bin:/usr/bin", NULL};
+	t_parse_outcome	outcome;
 
-	TEST_ASSERT_EQUAL_INT(OK, parsing_facade_parse(&g_facade, line,
-			&g_cmd_list, envp));
+	outcome = parsing_facade_parse(&g_facade, line, &g_cmd_list);
+	TEST_ASSERT_EQUAL_INT(PARSE_OK, outcome.result);
 	fflush(stdout);
 	return (executor_run(&g_executor, &g_cmd_list, &g_status));
 }

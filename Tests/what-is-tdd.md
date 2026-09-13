@@ -163,6 +163,44 @@ Unity 실패 메시지를 보면 먼저 다음 세 가지를 확인한다.
 127 을 돌려주는 것과 셸이 그 뒤에도 프롬프트를 다시 띄우는 것은 다른 층의 약속이다.
 그래서 세 층이 모두 초록이어야 "사용자에게 약속한 동작이 지켜진다"고 말할 수 있다.
 
+## 오류 출력 요구사항을 테스트로 나누기
+
+오류 문구는 모두 `minishell`이 출력하는 것처럼 보이지만, 실제 출력 주체는 다르다.
+이 구분을 놓치면 외부 프로그램의 오류까지 shell이 한 번 더 출력하거나, shell이
+출력해야 할 오류를 자식 프로그램에 기대하는 테스트가 생긴다.
+
+아래의 `bash:`는 동작을 비교하는 기준일 뿐이다. minishell의 shell 자체 메시지는
+프로젝트 이름에 맞춰 `minishell:`로 검증한다. `strerror()`가 만드는 시스템 오류
+세부 문구는 OS locale에 따라 달라질 수 있으므로, 테스트에서는 고정 prefix·상태와
+동일 환경의 `strerror()` 결과를 함께 사용한다.
+
+| 종류 | 예시 | 실제 출력 주체 | 상태 | 테스트 층 | 현재 상태 |
+|---|---|---|---:|---|---|
+| 구문 오류 | `minishell: syntax error near unexpected token ...` | minishell parser | 2 | facade 단위 + parser/통합 | 적용됨 |
+| 확장 오류 | `minishell: bad substitution` | minishell expansion | 보통 1 | expansion story의 단위 + 통합 | 구현 전 |
+| 명령 탐색 실패 | `minishell: foo: command not found` | minishell executor | 127 | facade 단위 + executor/통합 | 적용됨 |
+| builtin 오류 | `minishell: cd: /none: No such file or directory` | minishell builtin | 보통 1 | facade 단위 + builtin 통합 | facade만 적용 |
+| redirection 오류 | `minishell: /protected/a: Permission denied` | minishell redirection | 보통 1 | facade 단위 + redirection 통합 | facade만 적용 |
+| `execve()` 실패 | `minishell: ./program: ...` | minishell executor child | 보통 126, ENOENT는 127 | facade 단위 + executor 통합 | 적용됨 |
+| 외부 프로그램 오류 | `ls: cannot access ...` | 실행된 `ls`/`grep` 등 | 프로그램이 정함 | executor 통합 | shell이 관여하지 않음 |
+| signal 종료 안내 | `Segmentation fault`, `Killed` | 부모 shell의 wait/signal 처리 | `128 + signal` | signal 통합·tty 수동 | 구현 전 |
+| heredoc EOF 경고 | `minishell: warning: here-document ...` | minishell heredoc | 명령의 최종 상태 유지 | facade 단위 + heredoc 통합 | facade만 적용 |
+
+`Tests/error/test_error.c`는 현재 Facade가 책임지는 여섯 가지 출력 형식과 상태를
+고정한다. `Tests/integration/run_integration.sh`는 실제 REPL 경계에서 마지막 pipe의
+구문 오류(상태 2)와 오류 뒤 프롬프트 복귀를 검증한다. 없는 명령의 127, 직접 경로의
+ENOENT(127)·권한 오류(126), PATH의 권한 오류도 동일한 통합 스크립트에 있다.
+
+반대로 `ls /없는경로`처럼 프로그램이 이미 실행된 뒤의 오류는 `error_report()`의
+테스트 대상이 아니다. minishell은 그 stderr를 가공하거나 `minishell:`을 덧붙이지
+않고, 자식의 종료 상태만 `waitpid()`로 받아야 한다. 외부 프로그램의 정확한 문구는
+프로그램 버전·locale마다 달라질 수 있어, 통합 테스트에서는 shell이 출력에 개입하지
+않는지와 종료 상태 전달을 중심으로 검증한다.
+
+아직 구현 전인 expansion, builtin, redirection, signal, heredoc 기능은 지금부터
+실패하는 테스트를 미리 전체 suite에 넣지 않는다. 각 기능 story를 시작할 때 위 표의
+해당 행을 가장 작은 Red 테스트로 옮긴 뒤 구현한다.
+
 ## 스토리를 시작할 때
 
 스토리 하나는 사용자에게 보이는 동작 하나를 약속한다. 그 약속을 먼저

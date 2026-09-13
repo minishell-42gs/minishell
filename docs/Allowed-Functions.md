@@ -1,0 +1,217 @@
+# Minishell 필수 파트 — 허용 외부 함수 가이드
+
+> 기준: `Materials/Subjects/minishell_kr.md`의 필수 파트 허용 함수 목록  
+> 이 파일은 GitHub Wiki의 `Allowed-Functions` 페이지로 그대로 등록할 수 있다.
+
+## 기본 원칙
+
+- 아래 함수는 **사용 가능**하다는 뜻이지, 전부 구현에 써야 한다는 뜻은 아니다.
+- 목록에 없는 libc/시스템 함수는 직접 호출하면 안 된다. 예: `system`, `execvp`,
+  `getline`, `setenv`, `unsetenv`, `strdup`, `calloc`, `realloc`.
+- `libft`는 허용된다. 문자열, 배열, 메모리 보조 기능은 직접 만든 `ft_*` 함수로
+  해결한다.
+- 매크로와 타입은 함수가 아니므로 사용할 수 있다. 예: `STDIN_FILENO`, `O_RDONLY`,
+  `WIFEXITED`, `WEXITSTATUS`, `errno`, `SIGINT`.
+
+## 실행 구조 요약
+
+```text
+readline()
+  ↓
+lexer / parser / expansion
+  ↓
+builtin인가?
+  ├─ 부모에서 실행: cd, export, unset, exit
+  └─ 외부 명령 또는 pipeline:
+       pipe() → fork() → dup2() → execve()
+                         ↓
+                     부모는 waitpid()
+  ↓
+종료 상태를 $?에 저장
+```
+
+- 부모 셸의 상태를 바꾸는 `cd`, `export`, `unset`, `exit`는 파이프라인 밖에서는
+  부모에서 실행해야 한다.
+- 외부 명령은 자식에서 `execve()`로 실행한다. 성공한 `execve()`는 자식의 기존
+  프로그램을 완전히 교체하므로 반환하지 않는다.
+
+## 1. 입력과 히스토리
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `readline` | 프롬프트를 출력하고 한 줄을 읽는다. | 메인 입력 루프 | 반환 문자열은 할당된 메모리이므로 `free()`한다. `Ctrl-D`는 `NULL`을 반환한다. |
+| `add_history` | 입력 줄을 readline 히스토리에 넣는다. | 비어 있지 않은 일반 명령을 읽은 뒤 | heredoc 입력은 히스토리에 넣지 않는다. |
+| `rl_clear_history` | 히스토리 전체를 해제한다. | 셸 종료 직전 | `exit` 또는 메인 루프 종료 전에 호출한다. |
+| `rl_on_new_line` | readline에 새 줄 상태를 알린다. | interactive `Ctrl-C` 뒤 프롬프트 복구 | 보통 아래 두 함수와 함께 사용한다. |
+| `rl_replace_line` | 현재 편집 중인 입력 버퍼를 바꾼다. | `Ctrl-C` 뒤 현재 입력을 비울 때 | `rl_replace_line("", 0)`으로 줄을 비울 수 있다. |
+| `rl_redisplay` | 프롬프트와 입력 버퍼를 다시 그린다. | `Ctrl-C` 뒤 새 프롬프트 표시 | 시그널 핸들러 내부가 아니라 메인 흐름에서 호출하는 편이 안전하다. |
+
+대표적인 `Ctrl-C` 복구 순서는 다음과 같다.
+
+```text
+SIGINT 수신 → handler는 signal 번호 기록과 최소 작업만 수행
+           → 메인 루프 복귀
+           → rl_on_new_line() / rl_replace_line("", 0) / rl_redisplay()
+```
+
+과제는 전역 변수를 최대 하나만 허용하며, 그 변수에는 **시그널 번호만** 저장해야
+한다. 전역 셸 구조체를 두는 방식은 허용되지 않는다.
+
+## 2. 메모리, 출력, 오류
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `malloc` | 동적 메모리를 할당한다. | 토큰, 명령 구조체, argv, envp, 확장 문자열 생성 | 실패한 경우 `NULL`을 처리한다. |
+| `free` | 동적 메모리를 해제한다. | 명령 한 줄 처리 뒤, 셸 종료 시 | 이중 해제와 누수를 피한다. `readline()` 반환값도 대상이다. |
+| `printf` | 형식화해 표준 출력에 쓴다. | builtin 출력 구현 등 | `fork()` 직후 stdio 버퍼 중복에 주의한다. 단순 출력은 `write()`가 예측 가능하다. |
+| `write` | 지정 FD에 바이트를 쓴다. | 오류, `echo`, signal 줄바꿈, heredoc/pipe 출력 | `STDOUT_FILENO`는 1, `STDERR_FILENO`는 2이다. |
+| `perror` | 현재 `errno`에 맞는 오류 문구를 출력한다. | `open`, `fork`, `execve`, `chdir` 등 실패 직후 | 필요한 경우 명령/파일명 형식을 추가로 맞춘다. |
+| `strerror` | 오류 번호를 문자열로 변환한다. | 직접 오류 메시지 형식을 조합할 때 | 실패 직후 `errno`를 저장해 둔다. |
+| `exit` | 현재 프로세스를 종료한다. | 부모의 `exit`, 자식의 `execve()` 실패 뒤 | 부모에서 부르면 shell 전체, 자식에서 부르면 그 자식만 종료된다. |
+
+- 단순 시스템 오류는 `perror("minishell")`로 출력할 수 있다.
+- `minishell: cd: ...`처럼 형식을 제어하려면 `strerror(errno)`와 `write()`를 쓴다.
+- `errno`는 후속 호출로 바뀔 수 있으므로 실패 직후 보존한다.
+- `readline()` 자체의 일부 누수는 과제에서 예외지만, 직접 작성한 코드의 메모리
+  누수와 FD 누수는 허용되지 않는다.
+
+## 3. 파일 디스크립터와 리다이렉션
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `open` | 파일을 열고 FD를 얻는다. | `<`, `>`, `>>` | `O_CREAT`를 쓸 때는 권한(일반적으로 `0644`)도 전달한다. |
+| `read` | FD에서 입력을 읽는다. | heredoc 또는 파일 입력 | `0`은 EOF, `-1`은 오류다. |
+| `close` | FD를 닫는다. | 리다이렉션/파이프/heredoc 정리 | 불필요한 파이프 끝을 모두 닫아야 EOF가 전달된다. |
+| `dup` | FD를 새 번호로 복제한다. | 표준 입출력 임시 백업 | 부모 builtin의 리다이렉션 복구에 유용하다. |
+| `dup2` | FD를 원하는 번호로 복제한다. | `stdin`/`stdout`을 파일·파이프에 연결 | 복제 뒤 원본 FD가 불필요하면 닫는다. |
+| `pipe` | 읽기/쓰기 FD 쌍을 만든다. | `cmd1 \| cmd2` | `pipefd[0]`은 읽기, `pipefd[1]`은 쓰기다. |
+| `unlink` | 파일 이름을 제거한다. | 임시 heredoc 파일 설계 시 | 일반적으로 pipe 기반 heredoc이면 필요 없다. |
+
+| 문법 | 일반적인 `open()` 플래그 | 의미 |
+|---|---|---|
+| `< file` | `O_RDONLY` | 파일을 표준 입력으로 연결 |
+| `> file` | `O_WRONLY \| O_CREAT \| O_TRUNC`, `0644` | 새로 만들거나 기존 내용을 비우고 표준 출력 연결 |
+| `>> file` | `O_WRONLY \| O_CREAT \| O_APPEND`, `0644` | 파일 끝에 추가 출력 |
+| `<< delimiter` | `pipe()` 또는 임시 파일 | delimiter 전까지의 입력을 표준 입력으로 연결 |
+
+파이프의 기본 연결은 다음과 같다.
+
+```text
+echo hello | wc -c
+
+첫 번째 자식: dup2(pipefd[1], STDOUT_FILENO), 불필요한 pipe FD close, execve
+두 번째 자식: dup2(pipefd[0], STDIN_FILENO),  불필요한 pipe FD close, execve
+부모:         pipefd[0], pipefd[1] 모두 close, waitpid
+```
+
+부모 또는 다른 자식이 파이프의 쓰기 끝을 계속 보유하면, 읽는 쪽이 EOF를 받지 못해
+멈출 수 있다.
+
+## 4. 프로세스 생성과 명령 실행
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `fork` | 현재 프로세스를 복제해 자식을 만든다. | 외부 명령, pipeline, heredoc | `0`은 자식, 양수는 부모에서 본 자식 PID, `-1`은 실패다. |
+| `execve` | 현재 프로세스를 실행 파일로 교체한다. | 외부 명령 실행 | `path`, `argv`, `envp`를 정확히 만들며 배열은 `NULL`로 끝나야 한다. |
+| `wait` | 아무 자식 하나의 종료를 기다린다. | 단순 자식 회수 | pipeline 마지막 상태 추적에는 `waitpid()`가 더 적합하다. |
+| `waitpid` | 지정 PID의 종료를 기다린다. | pipeline 자식 회수와 상태 획득 | 마지막 foreground 명령의 상태를 `$?`에 반영한다. |
+| `wait3` | 자식 종료와 자원 사용량을 얻는다. | 사용 가능하나 대개 불필요 | 일반적으로 `waitpid()`로 충분하다. |
+| `wait4` | 지정 PID의 종료와 자원 사용량을 얻는다. | 사용 가능하나 대개 불필요 | 일반적으로 `waitpid()`로 충분하다. |
+| `kill` | 프로세스에 시그널을 보낸다. | heredoc 자식 중단, 자식 정리 | PID의 소유와 대상을 명확히 관리한다. |
+
+`execve(path, argv, envp)`는 `PATH`를 자동으로 검색하지 않는다. 명령에 `/`가 있으면
+경로로 실행하고, 없으면 `PATH`를 `:`로 분리해 각 디렉터리와 명령어를 결합하여
+후보를 만든다. `access(path, X_OK)`는 후보 검사에 쓸 수 있지만, 최종 실행 결과와
+오류 판단은 `execve()`도 반영해야 한다.
+
+`execve()`가 실패한 자식은 오류를 출력하고 반드시 `exit()`해야 한다. 그렇지 않으면
+자식이 부모의 shell 루프를 이어 실행할 수 있다.
+
+### 종료 상태
+
+- `WIFEXITED(status)`가 참이면 `WEXITSTATUS(status)`로 일반 종료 코드를 얻는다.
+- `WIFSIGNALED(status)`가 참이면 시그널 종료다.
+- 일반적인 shell 관례는 시그널 종료를 `128 + signal_number`로 변환하는 것이다.
+  - `SIGINT`(2) → `130`
+  - `SIGQUIT`(3) → `131`
+
+`WIFEXITED`, `WEXITSTATUS`, `WIFSIGNALED`, `WTERMSIG`는 허용 함수 목록과 별개의
+매크로다.
+
+## 5. 시그널
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `signal` | 간단한 핸들러 등록 | 단순 구현 | 세밀한 제어에는 `sigaction()`이 더 적합하다. |
+| `sigaction` | 핸들러, mask, 옵션을 설정한다. | `SIGINT`, `SIGQUIT` 처리 | interactive 부모/자식/heredoc 설정을 구분한다. |
+| `sigemptyset` | signal 집합을 초기화한다. | `sa_mask` 초기화 | 보통 `sigemptyset(&sa.sa_mask)`로 시작한다. |
+| `sigaddset` | signal을 mask에 추가한다. | 핸들러 중 막을 signal 지정 | 단순 구현에서는 불필요할 수 있다. |
+
+| 상황 | `Ctrl-C` (`SIGINT`) | `Ctrl-\\` (`SIGQUIT`) |
+|---|---|---|
+| 새 명령을 기다리는 부모 셸 | 현재 입력 취소 후 새 프롬프트 | 아무 동작 없음 |
+| 외부 명령 자식 | 기본 동작으로 종료 | 기본 동작으로 종료 |
+| 부모가 자식을 기다리는 중 | 자식 종료 상태를 수집해 반영 | 자식 종료 상태를 수집해 반영 |
+| heredoc 입력 중 | 수집 취소, 상태 130, pipeline 미실행 | 일반적으로 무시 |
+
+signal handler에서는 복잡한 로직을 하지 않는다. 가능한 작업은 전역 `sig_atomic_t`
+하나에 signal 번호를 기록하고 `write()`로 최소한의 출력을 하는 정도다. `malloc`,
+`free`, `printf`, parser 접근, 일반 readline 조작은 handler 밖의 메인 흐름에서 한다.
+
+## 6. 경로와 파일 정보
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `access` | 파일 존재/권한을 확인한다. | `PATH` 후보의 실행 가능 여부 검사 | 검사 뒤 파일 상태가 바뀔 수 있으므로 `execve()` 오류도 처리한다. |
+| `getcwd` | 현재 작업 디렉터리를 얻는다. | `pwd`, `cd` 상태 관리 | 버퍼 크기와 반환 메모리 소유권을 관리한다. |
+| `chdir` | 현재 작업 디렉터리를 바꾼다. | `cd` | 부모에서 실행해야 shell의 디렉터리가 바뀐다. |
+| `stat` | 경로가 가리키는 파일 정보를 읽는다. | 실행 대상이 디렉터리인지 확인 등 | 심볼릭 링크를 따라간다. |
+| `lstat` | 심볼릭 링크 자체 정보를 읽는다. | 링크 자체를 구분해야 할 때 | 일반 minishell에는 대개 불필요하다. |
+| `fstat` | 열린 FD의 파일 정보를 읽는다. | 열린 리다이렉션 FD 검사 등 | 경로가 아니라 FD를 기준으로 한다. |
+| `opendir` | 디렉터리 스트림을 연다. | 디렉터리 항목 순회가 필요할 때 | `PATH` 탐색에는 필요 없다. |
+| `readdir` | 디렉터리 항목 하나를 읽는다. | `opendir()` 뒤 순회 | 반환 포인터는 디렉터리 스트림에 종속된다. |
+| `closedir` | 디렉터리 스트림을 닫는다. | 순회 완료/오류 처리 | 모든 분기에서 닫는다. |
+
+와일드카드 확장은 필수 범위가 아니므로 `opendir`/`readdir`은 보통 사용할 필요가 없다.
+
+## 7. 환경변수
+
+| 함수 | 역할 | 사용 시점 | 주의점 |
+|---|---|---|---|
+| `getenv` | 현재 환경에서 변수 값을 찾는다. | 초기 `PATH`, `HOME` 등을 읽을 때 | 반환값을 수정하거나 `free()`하면 안 된다. |
+| `execve` | 지정한 환경 배열로 프로그램을 실행한다. | 외부 명령 실행 | `export`/`unset` 결과를 반영한 envp를 넘긴다. |
+
+`setenv()`와 `unsetenv()`는 허용되지 않는다. 시작 시 `envp`를 내부 연결 리스트나 배열로
+복사하고, `export`/`unset`/`env`/`$VAR` 확장은 그 내부 구조를 기준으로 구현한다. 외부
+명령을 실행하기 직전에 이를 `NULL` 종료 `char **envp` 형태로 변환해 `execve()`에 넘긴다.
+
+## 8. 터미널과 termcap
+
+| 함수 | 역할 | Minishell에서의 판단 |
+|---|---|---|
+| `isatty` | FD가 터미널인지 확인 | interactive 모드 판단에 유용할 수 있다. |
+| `ttyname` | 터미널 FD의 장치 경로 반환 | 일반 구현에는 보통 불필요하다. |
+| `ttyslot` | 현재 터미널 슬롯 번호 조회 | 거의 불필요하다. |
+| `ioctl` | 장치별 제어 요청 | 특별한 터미널 제어가 아니면 불필요하다. |
+| `tcgetattr` | 터미널 속성 조회 | 변경한 속성을 저장해야 할 때만 사용한다. |
+| `tcsetattr` | 터미널 속성 설정 | 잘못 설정하면 입력/에코가 깨질 수 있다. |
+| `tgetent` | termcap 항목 로드 | readline 사용 시 직접 쓸 일은 거의 없다. |
+| `tgetflag` | termcap boolean 능력 조회 | 일반 구현에는 불필요하다. |
+| `tgetnum` | termcap 숫자 능력 조회 | 일반 구현에는 불필요하다. |
+| `tgetstr` | termcap 문자열 능력 조회 | 일반 구현에는 불필요하다. |
+| `tgoto` | cursor 이동 termcap 문자열 생성 | readline을 쓰면 보통 불필요하다. |
+| `tputs` | termcap 제어 문자열 출력 | 일반 구현에는 불필요하다. |
+
+`readline`이 입력 편집과 많은 터미널 처리를 담당하므로, 필수 minishell에서는 위
+termcap 함수들을 직접 구현에 넣을 필요가 없는 경우가 대부분이다.
+
+## 자주 발생하는 실수
+
+1. 부모에서 `execve()`를 호출해 shell 자체가 외부 프로그램으로 교체되는 실수
+2. 부모에서 실행해야 할 `cd`를 자식에서 실행해 현재 디렉터리가 유지되는 실수
+3. 파이프의 불필요한 FD를 닫지 않아 명령이 EOF를 기다리며 멈추는 실수
+4. `readline()` 반환값과 `PATH` 탐색 중 만든 문자열을 해제하지 않는 실수
+5. `execve()` 실패 후 자식이 종료하지 않아 shell 루프를 중복 실행하는 실수
+6. signal handler에서 malloc, parser, readline 등의 안전하지 않은 작업을 하는 실수
+7. `getenv()` 반환값을 수정하거나 해제하는 실수
+8. 마지막 pipeline 명령이 아닌 중간 자식의 상태를 `$?`에 저장하는 실수
