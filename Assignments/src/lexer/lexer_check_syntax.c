@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   lexer_check_syntax.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/30 15:06:06 by tg                #+#    #+#             */
-/*   Updated: 2026/08/31 20:19:03 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/09/13 11:47:27 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "lexer.h"
 #include "libft.h"
+#include "util.h"
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -74,7 +75,7 @@ static bool	check_pipe_syntax(const char *line)
 		else if (!in_s_quote && !in_d_quote && is_single_pipe(line, index))
 		{
 			next = index + 1;
-			while (line[next] == ' ')
+			while (is_space(line[next]))
 				next++;
 			if (is_single_pipe(line, next))
 				return (true);
@@ -90,12 +91,12 @@ static const char	*check_boundary_pipe(const char *line)
 
 	if (line == NULL)
 		return (NULL);
-	while (*line == ' ')
+	while (is_space(*line))
 		line++;
 	if (is_single_pipe(line, 0))
 		return ("|");
 	end = ft_strlen(line);
-	while (end > 0 && line[end - 1] == ' ')
+	while (end > 0 && is_space(line[end - 1]))
 		end--;
 	if (end > 0 && is_single_pipe(line, end - 1))
 		return ("newline");

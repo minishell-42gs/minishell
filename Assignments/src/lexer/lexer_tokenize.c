@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   lexer_tokenize.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/28 15:25:34 by taegokim          #+#    #+#             */
-/*   Updated: 2026/08/31 20:53:48 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/09/13 11:47:27 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "lexer.h"
 #include "libft.h"
+#include "util.h"
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -38,7 +39,7 @@ static size_t	token_length(const char *cursor)
 			quote = cursor[length];
 		else if (quote == cursor[length])
 			quote = '\0';
-		else if (quote == '\0' && (cursor[length] == ' '
+		else if (quote == '\0' && (is_space(cursor[length])
 				|| (cursor[length] == '|' && cursor[length + 1] != '|')))
 			break ;
 		if (quote == '\0' && cursor[length] == '|')
@@ -87,7 +88,7 @@ t_status	lexer_tokenize(const char *line, t_token_list *token_list)
 	cursor = line;
 	while (*cursor != '\0')
 	{
-		while (*cursor == ' ')
+		while (is_space(*cursor))
 			cursor++;
 		if (*cursor == '\0')
 			break ;
