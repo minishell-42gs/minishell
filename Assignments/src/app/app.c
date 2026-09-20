@@ -6,7 +6,7 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/25 11:23:06 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/08/15 10:08:52 by tg               ###   ########.fr       */
+/*   Updated: 2026/09/20 18:42:49 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@
 
 static t_status	process_line(t_app *this, const char *line)
 {
-	t_cmd_list			cmd_list;
-	t_parse_outcome		parse_outcome;
+	t_cmd_list		cmd_list;
+	t_parse_outcome	parse_outcome;
 
 	if (cmd_list_init(&cmd_list) != OK)
 		return (FAIL);
@@ -41,7 +41,8 @@ static t_status	process_line(t_app *this, const char *line)
 			this->last_status = 1;
 		return (cmd_list.destroy(&cmd_list), FAIL);
 	}
-	if (executor_run(&this->executor, &cmd_list, &this->last_status) != OK)
+	if (this->executor.run(&this->executor, &cmd_list,
+			&this->last_status) != OK)
 		return (cmd_list.destroy(&cmd_list), FAIL);
 	cmd_list.destroy(&cmd_list);
 	return (OK);

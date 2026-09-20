@@ -117,7 +117,7 @@ redirection뿐 아니라 `pipe`, `fork`, `execve`에도 쓰이는 시스템 콜 
 `error_system.c`에 둔다.
 
 `error_report()`는 정리, fd 복구, `exit()`를 수행하지 않는다. 예를 들어
-`exec_child()`는 보고 후 path를 해제하고 자식만 `exit()`한다.
+`exec_external_child()`는 보고 후 path를 해제하고 자식만 `exit()`한다.
 
 ## 오류 종류와 사용 위치
 

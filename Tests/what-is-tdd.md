@@ -159,7 +159,7 @@ Unity 실패 메시지를 보면 먼저 다음 세 가지를 확인한다.
 | 통합 | `make -C Tests integration` | 제출용 `Assignments/minishell` 바이너리 | readline 루프부터 종료 코드까지, bash 와 비교 |
 | 수동 | `Tests/integration/MANUAL_CHECKLIST.md` | tty 가 있어야 보이는 동작 | 히스토리, 프롬프트 복귀, Ctrl+D |
 
-단위 테스트는 `main.c` 와 `app.c` 의 REPL 루프를 실행하지 않는다. `executor_run` 이
+단위 테스트는 `main.c` 와 `app.c` 의 REPL 루프를 실행하지 않는다. `executor.run` 이
 127 을 돌려주는 것과 셸이 그 뒤에도 프롬프트를 다시 띄우는 것은 다른 층의 약속이다.
 그래서 세 층이 모두 초록이어야 "사용자에게 약속한 동작이 지켜진다"고 말할 수 있다.
 

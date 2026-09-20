@@ -34,7 +34,7 @@ void	tearDown(void)
 	g_facade.destroy(&g_facade);
 }
 
-/* 한 줄을 파싱해 실행하고 executor_run의 반환값을 돌려준다.
+/* 한 줄을 파싱해 executor의 run 메서드 반환값을 돌려준다.
  * 명령의 종료 코드는 g_status에 기록된다.
  * fork 전에 stdout을 비워야 자식이 Unity 출력 버퍼를 복제해 두 번 찍지 않는다. */
 static t_status	run_line(const char *line)
@@ -44,7 +44,7 @@ static t_status	run_line(const char *line)
 	outcome = parsing_facade_parse(&g_facade, line, &g_cmd_list);
 	TEST_ASSERT_EQUAL_INT(PARSE_OK, outcome.result);
 	fflush(stdout);
-	return (executor_run(&g_executor, &g_cmd_list, &g_status));
+	return (g_executor.run(&g_executor, &g_cmd_list, &g_status));
 }
 
 /* 생성 직후 executor가 env_list를 참조하고 destroy가 설정되는지 확인한다. */
@@ -59,7 +59,7 @@ void	test_executor_init_sets_reference(void)
 void	test_executor_runs_empty_list_as_noop(void)
 {
 	g_status = 42;
-	TEST_ASSERT_EQUAL_INT(OK, executor_run(&g_executor, &g_cmd_list,
+	TEST_ASSERT_EQUAL_INT(OK, g_executor.run(&g_executor, &g_cmd_list,
 			&g_status));
 	TEST_ASSERT_EQUAL_INT(42, g_status);
 }
