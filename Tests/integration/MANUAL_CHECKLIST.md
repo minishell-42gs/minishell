@@ -18,6 +18,44 @@
 | `/bin/false` 입력 후 Ctrl+D | 한 번에 종료된다. 바깥 셸에서 `echo $?`가 `1` | [ ] |
 | `ls -a` 입력 후 Ctrl+D | 종료 후 바깥 셸에서 `echo $?`가 `0` | [ ] |
 
+## v2: 시그널과 히스토리 (평가표 Signals / Go Crazy and history)
+
+평가표 기준. `$?`는 다음 줄에 `echo $?`로 확인한다.
+
+| 상황 | 키 | 기대 (bash 기준) | 확인 |
+|---|---|---|---|
+| 빈 프롬프트 | Ctrl+C | 새 줄에 새 프롬프트, `$?`=130 | [ ] |
+| 빈 프롬프트 | Ctrl+\ | 아무 일 없음 | [ ] |
+| 빈 프롬프트 | Ctrl+D | 셸 종료 (다시 실행) | [ ] |
+| `abc` 입력 중 | Ctrl+C | 새 줄에 새 프롬프트. 이어서 Enter → 아무것도 실행되지 않음 (버퍼 비움) | [ ] |
+| `abc` 입력 중 | Ctrl+D | 아무 일 없음 | [ ] |
+| `abc` 입력 중 | Ctrl+\ | 아무 일 없음 | [ ] |
+| `cat` 실행 중 | Ctrl+C | cat 종료, 새 프롬프트, `$?`=130 | [ ] |
+| `cat` 실행 중 | Ctrl+\ | `Quit (core dumped)` 출력, `$?`=131 | [ ] |
+| `cat` 실행 중 | Ctrl+D | cat 이 EOF 를 받고 정상 종료, 셸은 계속, `$?`=0 | [ ] |
+| `grep something` 실행 중 | Ctrl+C / Ctrl+\ / Ctrl+D | 위 `cat` 과 동일 | [ ] |
+| `cat \| cat \| ls` | Enter 후 Ctrl+D | ls 출력, 교착 없이 프롬프트 복귀 | [ ] |
+| `cat << EOF` 입력 중 | Ctrl+C | heredoc 취소, 새 프롬프트, 명령 실행 안 됨, `$?`=130 | [ ] |
+| `cat << EOF` 입력 중 | Ctrl+D | 경고 출력 후 수집된 본문으로 실행 | [ ] |
+| heredoc 본문 입력 후 | ↑ | heredoc 본문 줄이 히스토리에 **없음** | [ ] |
+| 명령 몇 개 실행 후 | ↑ ↓ | 이전 명령 탐색, Enter 로 재실행 가능 | [ ] |
+| `dsbksdgbksdghsd` | Enter | `command not found`, 셸은 계속 | [ ] |
+
+## 평가 전 메모리 확인
+
+제출 바이너리를 valgrind 로 돌린다. readline 내부 누수는 과제가 허용하므로
+`readline.supp` 로 걸러내고, **우리 코드의 `definitely lost` 가 0** 인지 본다.
+
+```sh
+printf 'ls -a\nexport A=1\necho $A | cat\ncat << EOF\nhi\nEOF\ncd /tmp\npwd\nexit 3\n' | \
+  valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes --trace-children=yes \
+           --suppressions=Tests/integration/readline.supp ./Assignments/minishell
+```
+
+- 부모와 자식 모두 `definitely lost: 0 bytes`, `indirectly lost: 0 bytes`
+- `--track-fds=yes` 출력에서 열린 fd 가 0/1/2 뿐
+- 파이프라인과 heredoc 경로를 꼭 포함한다 (fd 누수가 가장 흔한 곳)
+
 ## 추가 확인 규칙
 
 - 자동화할 수 있는 항목은 이 표가 아니라 `run_integration.sh`에 추가한다.
