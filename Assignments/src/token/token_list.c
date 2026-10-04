@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   token_list.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/28 13:18:18 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 16:01:32 by taegokim         ###   ########.fr       */
+/*   Updated: 2026/08/23 18:30:30 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,31 +31,38 @@ static void	destroy_all_tokens(t_token *tokens)
 
 static void	destroy_impl(t_token_list *this)
 {
+	if (this == NULL)
+		return ;
 	if (this->head != NULL)
 		destroy_all_tokens(this->head);
+	this->head = NULL;
+	this->tail = NULL;
 }
 
 t_status	token_list_add_token(t_token_list *this, t_token *new_node)
 {
-	t_token	*node;
-
 	if (this == NULL || new_node == NULL)
 		return (FAIL);
 	if (this->head == NULL)
 	{
 		this->head = new_node;
+		this->tail = new_node;
+		while (this->tail->next != NULL)
+			this->tail = this->tail->next;
 		return (OK);
 	}
-	node = this->head;
-	while (node->next != NULL)
-		node = node->next;
-	(*node).next = new_node;
+	this->tail->next = new_node;
+	while (this->tail->next != NULL)
+		this->tail = this->tail->next;
 	return (OK);
 }
 
 t_status	token_list_init(t_token_list *this)
 {
+	if (this == NULL)
+		return (FAIL);
 	this->destroy = destroy_impl;
 	this->head = NULL;
+	this->tail = NULL;
 	return (OK);
 }

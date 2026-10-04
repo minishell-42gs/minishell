@@ -43,12 +43,14 @@ struct							s_redir
 struct							s_cmd
 {
 	char						**argv;
+	char						**raw_argv;
 	t_redir						*redirs;
 	t_cmd						*next;
 
 	void						(*destroy)(t_cmd *this);
 };
 t_status						cmd_append_argv(t_cmd *this, char *str);
+t_status						cmd_append_raw_argv(t_cmd *this, char *str);
 // argv:{NULL} , redirs:NULL, next:NULL
 t_status						cmd_init(t_cmd *this);
 
@@ -69,6 +71,9 @@ struct							s_cmd_factory
 t_cmd							*cmd_factory_create(t_cmd_factory *this,
 									t_token **token);
 t_status						cmd_factory_init(t_cmd_factory *this);
+
+char							*create_cmd_path(const char *cmd_name,
+									char **envp);
 
 // extern volatile sig_atomic_t	g_signal;
 
