@@ -1,37 +1,37 @@
-# Parsing and Expansion Design
+# 파싱과 확장 설계
 
-## Data flow
+## 데이터 흐름
 
-The lexer recognizes words and operators while respecting quote context. The parser consumes the token stream into a command list. Each command stores raw words and expanded argv separately, plus a linked list of redirections in source order.
+어휘 분석기(Lexer)는 따옴표 상태를 고려해 단어와 연산자를 인식합니다. 구문 분석기(Parser)는 토큰을 명령 목록으로 구성합니다. 각 명령은 원문 단어와 확장된 argv를 따로 저장하고, 입력 순서가 유지되는 리다이렉션 연결 목록을 가집니다.
 
-```text
-input line
-  -> lexer tokens (raw word spelling + operator kind)
-  -> parser (pipeline commands + ordered redirections)
-  -> expansion (argv and redirection targets)
-  -> heredoc collection
-  -> executor
-```
+~~~text
+입력 줄
+  -> 어휘 분석 토큰 (원문 단어와 연산자 종류)
+  -> 구문 분석 (파이프라인 명령과 순서가 있는 리다이렉션)
+  -> 확장 (argv와 리다이렉션 대상)
+  -> heredoc 수집
+  -> 명령 실행
+~~~
 
-Expansion never feeds tokens back into the lexer. A variable whose value contains a pipe remains argument data and cannot create another pipeline.
+확장 결과를 다시 어휘 분석기에 넣지 않습니다. 변수 값에 파이프 문자가 있어도 인자 데이터로 남고 새로운 파이프라인을 만들지 않습니다.
 
-## Quote-aware fields
+## 따옴표에 따른 필드 구성
 
-The expander tracks single-quoted, double-quoted, and unquoted states.
+확장기는 작은따옴표, 큰따옴표, 따옴표 없는 상태를 추적합니다.
 
-- Single-quoted text is copied literally.
-- Double-quoted text allows variable expansion and keeps its result in one field.
-- Unquoted variable output is split on shell whitespace.
-- Adjacent quoted and unquoted fragments join into the same word.
-- Empty quoted fragments create an empty argument. An unset expansion by itself creates no field.
-- Supported expansions are environment names and the previous command status, written as `$?`.
+- 작은따옴표 안의 문자는 그대로 복사합니다.
+- 큰따옴표 안에서는 변수를 확장하되 결과를 하나의 필드로 유지합니다.
+- 따옴표 없는 변수 확장 결과는 셸 공백 기준으로 분리합니다.
+- 따옴표가 있거나 없는 인접 문자열 조각은 같은 단어로 연결합니다.
+- 빈 따옴표는 빈 인자를 만듭니다. 설정되지 않은 변수만 있는 단어는 필드를 만들지 않습니다.
+- 지원하는 확장은 환경 변수 이름과 직전 명령 상태를 나타내는 `$?`입니다.
 
-This mandatory-subset model does not implement wildcard expansion or configurable IFS.
+필수 범위의 확장 모델이며, 와일드카드나 사용자 정의 `IFS`는 구현하지 않습니다.
 
-## Redirection targets and heredoc delimiters
+## 리다이렉션 대상과 heredoc 구분자
 
-Redirection targets use quote removal and variable expansion, then require exactly one resulting field. Zero or multiple fields produce an ambiguous-redirection error before command execution.
+리다이렉션 대상은 따옴표 제거와 변수 확장을 거친 뒤 정확히 하나의 필드가 되어야 합니다. 필드가 없거나 여러 개이면 명령 실행 전에 모호한 리다이렉션 오류를 반환합니다.
 
-A heredoc delimiter is quote-removed without variable expansion. The parser records whether the delimiter contained quotes; that decides whether body lines expand variables. Body expansion does not perform field splitting.
+heredoc 구분자는 변수 확장 없이 따옴표만 제거합니다. 구문 분석기는 구분자에 따옴표가 있었는지 기록하고, 그 값으로 본문의 변수 확장 여부를 결정합니다. 본문 확장에서는 필드 분리를 하지 않습니다.
 
-Syntax validation happens before expansion. Missing redirection operands and invalid pipe placement remain syntax errors even when variables could produce similar text.
+문법 검사는 확장보다 먼저 수행합니다. 따라서 리다이렉션 대상 누락과 잘못된 파이프 위치는 변수 값이 비슷한 문자를 만들더라도 문법 오류로 처리됩니다.

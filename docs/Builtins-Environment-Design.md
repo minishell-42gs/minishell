@@ -1,29 +1,29 @@
-# Builtins and Environment Design
+# 내장 명령과 환경 변수 설계
 
-## Environment representation
+## 환경 변수 표현
 
-The application owns one environment list shared with parsing and the executor. Each entry tracks its key, value, exported state, and whether a value was assigned. This distinguishes:
+앱이 환경 목록 하나를 소유하고 파서와 실행기가 이를 함께 참조합니다. 각 항목은 키와 값, 자식 프로세스에 전달할지 여부, 값이 설정되었는지를 저장합니다. 이에 따라 다음 세 경우를 구분합니다.
 
-- `export NAME`: a shell variable with no value, omitted from child `envp`;
-- `export NAME=`: an exported variable with an empty value;
-- `export NAME=value`: an exported variable with a value.
+- `export NAME`: 값이 없는 셸 변수이며 자식 `envp`에는 포함하지 않습니다.
+- `export NAME=`: 빈 값이 설정된 내보내기 변수입니다.
+- `export NAME=value`: 값이 설정된 내보내기 변수입니다.
 
-The `env` builtin and child environment include only exported entries that have values. With no arguments, `export` prints exported entries in sorted order. `unset` removes an entry. Expansion reads the same list, so changes are visible to the next command.
+`env` 내장 명령과 자식 환경에는 내보내기로 표시되고 값이 설정된 항목만 포함합니다. 인자 없이 `export`를 실행하면 내보내기 항목을 정렬해 출력합니다. `unset`은 목록에서 항목을 제거합니다. 변수 확장도 같은 목록을 조회하므로 변경 결과가 다음 명령부터 적용됩니다.
 
-## Parent and child execution
+## 부모와 자식 프로세스에서의 실행
 
-A single builtin runs in the parent, so `cd`, `export`, and `unset` persist. The executor saves stdin and stdout before applying redirections and restores them when the builtin returns, including on command errors.
+단독 내장 명령은 부모 프로세스에서 실행하므로 `cd`, `export`, `unset`의 변경이 유지됩니다. 실행기는 리다이렉션을 적용하기 전에 표준 입력과 출력을 저장하고, 명령 오류가 나더라도 실행이 끝나면 두 FD를 복원합니다.
 
-A builtin in a pipeline runs in its child process. Its environment and working-directory changes disappear with that child. External commands receive an `envp` generated from the current exported environment.
+파이프라인 안의 내장 명령은 자식 프로세스에서 실행합니다. 그 프로세스의 환경이나 작업 디렉터리 변경은 자식과 함께 사라져 부모 셸에 영향을 주지 않습니다. 외부 명령에는 현재 내보내기 환경으로 만든 `envp`를 전달합니다.
 
-## Builtin behavior
+## 내장 명령 동작
 
-- `echo` prints arguments and supports repeated leading `-n` options.
-- `cd` changes directory and updates `PWD` and `OLDPWD`; without an argument it uses `HOME`, and `cd -` prints the destination.
-- `pwd` prints the current working directory.
-- `export` validates identifiers, sets values, and supports declarations without values.
-- `unset` removes named entries.
-- `env` prints exported entries with values.
-- `exit` uses the previous status without an argument, validates numeric input and argument count, and returns an exit request so the application can clean up normally.
+- `echo`는 인자를 출력하며 앞부분에 반복되는 `-n` 옵션을 지원합니다.
+- `cd`는 디렉터리를 바꾸고 `PWD`와 `OLDPWD`를 갱신합니다. 인자가 없으면 `HOME`을 사용하고, `cd -`는 이동한 경로를 출력합니다.
+- `pwd`는 현재 작업 디렉터리를 출력합니다.
+- `export`는 변수 이름을 검사하고 값을 설정하며, 값이 없는 선언도 지원합니다.
+- `unset`은 지정한 변수 항목을 삭제합니다.
+- `env`는 값을 가진 내보내기 환경 항목을 출력합니다.
+- `exit`은 인자가 없으면 직전 종료 상태를 사용합니다. 숫자와 인자 개수를 검사한 뒤 앱에 종료 요청을 돌려줘 정상 정리가 이루어지게 합니다.
 
-Pipeline status is the final command's status. Signal termination maps to 128 plus the signal number.
+파이프라인의 최종 상태는 마지막 명령의 상태입니다. 시그널로 종료된 경우 상태는 시그널 번호에 128을 더한 값입니다.

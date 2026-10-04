@@ -1,13 +1,13 @@
-# Signal Design
+# 시그널 처리 설계
 
-The shell has three signal contexts: prompt input, command execution, and heredoc input.
+셸은 프롬프트 입력, 명령 실행, heredoc 입력의 세 가지 시그널 상황을 처리합니다.
 
-| Context | Parent behavior | Child behavior | Result |
+| 상황 | 부모 동작 | 자식 동작 | 결과 |
 |---|---|---|---|
-| Prompt | SIGINT handler records the signal; a Readline event hook clears the current line and returns to a fresh prompt. SIGQUIT is ignored. | — | Ctrl-C sets status 130; Ctrl-\\ does nothing |
-| Pipeline/external execution | Parent ignores SIGINT and SIGQUIT while waiting. | Child restores default signal behavior before command setup and exec. | Final command status is returned; signal exit maps to 128 + signal |
-| Heredoc | The recorded SIGINT is checked between input lines; SIGQUIT remains ignored. | Collection stays in the shell process. | Ctrl-C cancels collection, skips execution, and sets status 130 |
+| 프롬프트 | SIGINT 처리기가 시그널을 기록합니다. Readline 이벤트 훅이 현재 줄을 비우고 새 프롬프트로 돌아갑니다. SIGQUIT은 무시합니다. | 해당 없음 | Ctrl-C는 상태 130, Ctrl-\는 동작하지 않음 |
+| 파이프라인·외부 명령 실행 | 자식이 끝날 때까지 SIGINT와 SIGQUIT을 무시합니다. | 명령 설정과 exec 전에 기본 시그널 동작을 복원합니다. | 마지막 명령 상태를 반환하며, 시그널 종료 상태는 128 + 시그널 번호 |
+| heredoc 입력 | 입력 줄 사이에서 기록된 SIGINT를 확인하고 SIGQUIT은 무시합니다. | 본문은 셸 프로세스 안에서 수집합니다. | Ctrl-C는 수집을 취소하고 실행을 건너뛰며 상태 130 설정 |
 
-Only one file-scope signal variable is used, with type `volatile sig_atomic_t`. The handler only stores the signal number. Readline integration and cleanup happen in normal control flow, outside the handler.
+파일 범위에서 사용하는 시그널 변수는 `volatile sig_atomic_t` 하나뿐입니다. 처리기는 시그널 번호만 기록합니다. Readline 처리와 자원 정리는 처리기 바깥의 일반 실행 흐름에서 합니다.
 
-`Tests/integration/test_signals.py` uses a pseudo-terminal to exercise prompt, child, heredoc, and Ctrl-D behavior. Run it with `make -C Tests integration-signals`.
+`Tests/integration/test_signals.py`는 의사 터미널을 사용해 프롬프트, 자식 프로세스, heredoc, Ctrl-D 동작을 검사합니다. `make -C Tests integration-signals`로 실행합니다.

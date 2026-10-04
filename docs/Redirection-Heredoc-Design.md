@@ -1,26 +1,26 @@
-# Redirection and Heredoc Design
+# 리다이렉션과 heredoc 설계
 
-## Ordered redirections
+## 순서가 있는 리다이렉션
 
-The parser stores redirections in source order. The executor connects pipeline stdin/stdout first, then applies each command's redirections from left to right. This preserves file side effects and the final stream choice: `echo text > first > second` creates/truncates both files and sends output to the second.
+구문 분석기는 리다이렉션이 입력된 순서를 보존합니다. 실행기는 먼저 파이프의 표준 입력·출력을 연결하고, 그 뒤 각 명령의 리다이렉션을 왼쪽에서 오른쪽으로 적용합니다. 이 방식은 파일 부수 효과와 최종 입출력 선택을 모두 보존합니다. 예를 들어 `echo text > first > second`는 두 파일을 모두 만들거나 비우고, 출력은 두 번째 파일로 보냅니다.
 
-Input redirection opens read-only. Output redirection creates or truncates with mode 0644; append creates or appends with the same mode. Each opened descriptor is duplicated onto stdin or stdout and then closed.
+입력 리다이렉션은 읽기 전용으로 엽니다. 출력 리다이렉션은 권한 `0644`로 파일을 만들거나 비우며, 추가 리다이렉션은 같은 권한으로 만들거나 뒤에 씁니다. 열린 FD는 표준 입력 또는 출력에 복제한 뒤 닫습니다.
 
-A standalone builtin runs through a parent-side wrapper that saves stdin/stdout and restores them. A redirection-only command is valid and does not try to execute an empty command name.
+단독 내장 명령은 부모 경로에서 표준 입력과 출력을 저장하고 복구합니다. 리다이렉션만 있는 명령도 유효하며, 빈 명령 이름을 실행하려 하지 않습니다.
 
-## Heredoc lifecycle
+## heredoc 처리 과정
 
-All heredocs are collected in command and redirection order before the pipeline executes. A heredoc overridden by a later input redirection is still read. The final applicable input redirection determines the command's stdin.
+파이프라인 실행 전, 모든 heredoc 본문을 명령 및 리다이렉션 순서에 따라 수집합니다. 나중 입력 리다이렉션으로 대체될 heredoc도 입력을 받습니다. 실행 시 마지막으로 적용되는 입력 리다이렉션이 명령의 표준 입력을 결정합니다.
 
-For each heredoc:
+각 heredoc은 다음 순서로 처리합니다.
 
-1. Create a unique path with exclusive creation and mode 0600.
-2. Open a separate reader descriptor, then unlink the path.
-3. Read until the quote-removed delimiter, EOF, or Ctrl-C.
-4. Expand body variables only when the delimiter was not quoted.
-5. Close the writer and retain the reader descriptor on its redirection node.
-6. During redirection setup, duplicate that descriptor onto stdin and close it.
+1. 배타 생성과 권한 `0600`을 사용해 고유한 경로를 만듭니다.
+2. 별도 읽기 FD를 연 뒤 파일 경로를 `unlink()`로 삭제합니다.
+3. 따옴표를 제거한 구분자, EOF 또는 Ctrl-C까지 본문을 읽습니다.
+4. 구분자에 따옴표가 없을 때만 본문 변수를 확장합니다.
+5. 쓰기 FD를 닫고 읽기 FD를 해당 리다이렉션 노드에 보관합니다.
+6. 리다이렉션을 적용할 때 읽기 FD를 표준 입력에 복제하고 닫습니다.
 
-A temporary file avoids filling a pipe before a consumer exists. Command destruction closes a heredoc descriptor that was not consumed. EOF before the delimiter emits a warning and executes with the collected body. Ctrl-C sets status 130, releases heredoc descriptors, and skips execution.
+소비자가 준비되기 전에 파이프에 본문을 쓰면 버퍼가 차서 멈출 수 있으므로 임시 파일을 사용합니다. 명령 정리 시 사용되지 않은 heredoc FD도 닫습니다. 구분자 전에 EOF가 오면 경고를 출력하고 지금까지 수집한 본문으로 명령을 실행합니다. Ctrl-C가 오면 상태 130을 설정하고 FD를 정리한 뒤 실행을 건너뜁니다.
 
-Interactive bodies use Readline's secondary prompt and are not added to history. Non-interactive bodies are read directly from stdin so Readline does not echo script input to stdout.
+대화형 본문은 Readline의 보조 프롬프트로 입력받으며 히스토리에 추가하지 않습니다. 비대화형 입력은 Readline의 입력 반향이 표준 출력에 섞이지 않도록 직접 읽습니다.
