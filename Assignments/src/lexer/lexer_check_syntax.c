@@ -16,13 +16,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-typedef struct s_validation_state
-{
-	bool	segment;
-	bool	pipe_seen;
-	bool	expect_target;
-}	t_validation_state;
-
 static t_status	set_syntax(const char **syntax_token, const char *token)
 {
 	if (syntax_token != NULL)

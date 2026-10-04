@@ -15,15 +15,6 @@
 #include "util.h"
 #include <stdlib.h>
 
-typedef struct s_word_context
-{
-	const char			*raw;
-	size_t				*index;
-	char				*quote;
-	t_expansion_context	*expansion;
-	t_word_state		*word;
-}	t_word_context;
-
 static t_status	append_variable(t_word_context *state)
 {
 	char		*value;

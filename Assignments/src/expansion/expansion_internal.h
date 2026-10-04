@@ -33,6 +33,15 @@ typedef struct s_expansion_context
 	int			last_status;
 }	t_expansion_context;
 
+typedef struct s_word_context
+{
+	const char			*raw;
+	size_t				*index;
+	char				*quote;
+	t_expansion_context	*expansion;
+	t_word_state		*word;
+}	t_word_context;
+
 bool		is_name_start(char c);
 bool		is_name_char(char c);
 t_status	exp_append_char(t_word_state *state, char c);
