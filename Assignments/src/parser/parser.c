@@ -3,44 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: taegokim <taegokim@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/26 08:24:32 by taegokim          #+#    #+#             */
-/*   Updated: 2026/07/29 16:31:10 by taegokim         ###   ########.fr       */
+/*   Created: 2026/10/04 15:00:00 by tg                #+#    #+#             */
+/*   Updated: 2026/10/04 15:00:00 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "cmd.h"
 #include "parser.h"
-#include "token.h"
 #include <stddef.h>
-#include <stdlib.h>
 
-t_status	parser_run(t_parser *this, t_token *tokens_head,
-		t_cmd_list *cmd_list)
+t_status	parser_run(t_parser *this, t_token *tokens, t_cmd_list *cmd_list)
 {
-	t_token	*token;
-	t_cmd	*cmd;
-
-	if (tokens_head == NULL || cmd_list == NULL)
+	(void)this;
+	if (tokens == NULL || cmd_list == NULL)
 		return (FAIL);
-	token = tokens_head;
-	while (token != NULL)
-	{
-		if (token->type == TOKEN_WORD)
-		{
-			cmd = cmd_factory_create(&this->cmd_factory, &token);
-			if (!cmd)
-				return (FAIL);
-			if (cmd_list_add_cmd(cmd_list, cmd) != OK)
-				return (cmd->destroy(cmd), free(cmd), FAIL);
-		}
-		else if (token->type == TOKEN_PIPE)
-			token = token->next;
-		else
-			return (FAIL);
-	}
-	return (OK);
+	return (parser_build(tokens, cmd_list));
 }
 
 static void	destroy_impl(t_parser *this)
@@ -51,8 +29,8 @@ static void	destroy_impl(t_parser *this)
 
 t_status	parser_init(t_parser *this)
 {
-	this->destroy = destroy_impl;
-	if (cmd_factory_init(&this->cmd_factory) != OK)
+	if (this == NULL)
 		return (FAIL);
-	return (OK);
+	this->destroy = destroy_impl;
+	return (cmd_factory_init(&this->cmd_factory));
 }

@@ -30,7 +30,11 @@ char	*env_list_get_impl(t_env_list *this, const char *key)
 	while (env != NULL)
 	{
 		if (is_same_str(key, env->key))
-			return (env->value);
+		{
+			if (env->has_value)
+				return (env->value);
+			return (NULL);
+		}
 		env = env->next;
 	}
 	return (NULL);

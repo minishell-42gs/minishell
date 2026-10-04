@@ -24,6 +24,8 @@ t_status	lexer_run(t_lexer *this, const char *line, t_token_list *token_list,
 		return (FAIL);
 	if (lexer_tokenize(line, token_list) != OK)
 		return (FAIL);
+	if (lexer_validate_tokens(token_list->head, syntax_token) != OK)
+		return (token_list->destroy(token_list), FAIL);
 	return (OK);
 }
 

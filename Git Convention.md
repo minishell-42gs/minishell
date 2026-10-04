@@ -1,4 +1,4 @@
-# Branch Convention
+# 브랜치 규칙
 ## 규칙
 
 - 영어 소문자를 사용한다.
@@ -7,9 +7,9 @@
 - 작업 내용은 최대한 짧고 명확하게 작성한다.
 - 가능하면 명사가 아닌 동사 형태로 시작한다.
 
-## Prefix
+## 접두사
 
-| Prefix   | 설명                    | 예시                              |
+| 접두사   | 설명                    | 예시                              |
 | -------- | --------------------- | ------------------------------- |
 | story  | 새로운 스토리 추가             | story/v2-walking_skeleton     |
 | feature  | 새로운 기능 추가             | feature/user-profile-upload     |
@@ -23,18 +23,18 @@
 | build    | 빌드 시스템 변경             | build/update-makefile           |
 
 
-# Commit Convention
+# 커밋 규칙
 ## 규칙
 
 - `type: 작업내용` 형태로 작성한다.
 - `type`은 영어 소문자를 사용한다.
 - `:` 뒤에는 한 칸의 공백을 둔다.
-- 작업 내용은 영어로 간결하게 작성한다.
+- 작업 내용은 간결한 영어로 작성한다.
 - 마침표(`.`)는 사용하지 않는다.
 
-## Type
+## 유형
 
-|Type|설명|예시|
+| 유형 | 설명 | 예시 |
 |---|---|---|
 |feat|새로운 기능 추가|feat: add login API|
 |fix|버그 수정|fix: fix null pointer exception|

@@ -22,6 +22,8 @@ struct						s_env
 {
 	char					*key;
 	char					*value;
+	bool					is_exported;
+	bool					has_value;
 	t_env					*next;
 
 	void					(*destroy)(t_env *this);
@@ -42,6 +44,8 @@ t_status					env_list_set(t_env_list *this, const char *key,
 								const char *value);
 t_status					env_list_unset(t_env_list *this, const char *key);
 t_status					env_list_init(t_env_list *this, char **envp);
+t_status					env_list_declare(t_env_list *this, const char *key);
+t_status					env_list_clone(t_env_list *dst, t_env_list *src);
 
 /* implement functions */
 char						*env_list_get_impl(t_env_list *this,
