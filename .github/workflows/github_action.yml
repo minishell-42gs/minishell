@@ -26,7 +26,12 @@ jobs:
         run: python3 -m pip install norminette==3.3.59
 
       - name: Norm 검사
-        run: norminette Assignments
+        # 3.3.59 는 과제가 허용하는 시그널 전역 변수 1개에도 Notice 를 내고 exit 1 을
+        # 반환한다. 평가 기준과 같게 Error 줄이 있을 때만 실패시킨다.
+        run: |
+          norminette Assignments > norm.log || true
+          cat norm.log
+          ! grep -q '^Error' norm.log
 
   build:
     name: Build Check
