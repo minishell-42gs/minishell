@@ -4,6 +4,8 @@
 
 See the [Korean README](README_ko.md) for a full Korean translation.
 
+## Description
+
 Minishell is a small interactive shell written in C for the 42 curriculum. It reads commands, parses words and operators, expands variables, runs builtins or external programs, and connects commands with pipelines. The mandatory features include quoting, environment variables, redirections, heredocs, and the seven required builtins.
 
 Commands retain their original words for expansion, redirections run in source order, standalone state-changing builtins run in the parent shell, and pipeline commands run in child processes.
