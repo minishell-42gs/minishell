@@ -23,6 +23,20 @@ static t_status	set_syntax(const char **syntax_token, const char *token)
 	return (FAIL);
 }
 
+/* Returns a literal: the caller prints it after the token list is freed. */
+static const char	*operator_text(t_token_type type)
+{
+	if (type == TOKEN_REDIR_IN)
+		return ("<");
+	if (type == TOKEN_REDIR_OUT)
+		return (">");
+	if (type == TOKEN_REDIR_APPEND)
+		return (">>");
+	if (type == TOKEN_HEREDOC)
+		return ("<<");
+	return ("|");
+}
+
 static t_status	process_token(t_validation_state *state, t_token *token,
 					const char **syntax_token)
 {
@@ -41,7 +55,7 @@ static t_status	process_token(t_validation_state *state, t_token *token,
 		return (OK);
 	}
 	if (state->expect_target)
-		return (set_syntax(syntax_token, token->value));
+		return (set_syntax(syntax_token, operator_text(token->type)));
 	state->expect_target = true;
 	return (OK);
 }

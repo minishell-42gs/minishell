@@ -62,7 +62,7 @@ static t_status	apply_one(t_redir *redir, int *out_status)
 	}
 	if (redir->type == REDIR_HEREDOC)
 		redir->hd_fd = -1;
-	else
+	if (fd != target_fd(redir))
 		close(fd);
 	return (OK);
 }
