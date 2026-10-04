@@ -33,6 +33,9 @@ static int	readline_event(void)
 	return (0);
 }
 
+/* readline must return on SIGINT so that both the prompt and a pending
+ * heredoc can abort; the event hook sets rl_done instead of calling
+ * readline functions from inside the signal handler. */
 int	signals_install_prompt(void)
 {
 	struct sigaction	action;
