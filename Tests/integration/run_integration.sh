@@ -317,6 +317,17 @@ same_as_bash 'cd 실패는 1 을 반환하고 셸은 계속' \
 	'cd /nonexistent_minishell_dir\necho $?\n'
 expect_shell_error 'exit 에 숫자가 아닌 인자: 2 + 메시지' 'exit abc\n' 2 \
 	'numeric argument required'
+# 회귀: 평가 전 점검에서 발견된 결함 (fix/syntax-token-lifetime-and-heredoc-fd)
+# ---------------------------------------------------------------------------
+
+# 연속 리다이렉션의 구문 오류 메시지는 해제된 토큰이 아니라 실제 연산자를 보여야 한다.
+expect_shell_error '연속 리다이렉션: 오류 메시지에 연산자가 그대로' '> > out\n' 2 \
+	"unexpected token \`>'"
+expect_shell_error '연속 입력 리다이렉션: 오류 메시지에 연산자가 그대로' \
+	'cat < < in\n' 2 "unexpected token \`<'"
+# 부모에서 실행된 builtin 의 heredoc fd 가 다음 자식 프로세스로 새지 않아야 한다.
+same_as_bash 'heredoc builtin 뒤 자식 프로세스의 열린 fd 수는 bash 와 같음' \
+	'echo << MINISHELL_EOF\nbody\nMINISHELL_EOF\nls /proc/self/fd | wc -l\n'
 
 printf '\n========== INTEGRATION SUMMARY ==========\n'
 printf 'Cases : %d total, %d passed, %d failed\n' \
