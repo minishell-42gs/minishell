@@ -6,64 +6,61 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/25 11:23:06 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/09/20 18:42:49 by tg               ###   ########.fr       */
+/*   Updated: 2026/10/04 15:00:00 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "app.h"
-#include "cmd.h"
-#include "error.h"
-#include "libft.h"
-#include "status.h"
+#include "signals.h"
 #include "util.h"
 #include <readline/history.h>
 #include <readline/readline.h>
+#include <signal.h>
 #include <stdlib.h>
 
-static t_status	process_line(t_app *this, const char *line)
-{
-	t_cmd_list		cmd_list;
-	t_parse_outcome	parse_outcome;
+t_status	process_line(t_app *this, const char *line);
 
-	if (cmd_list_init(&cmd_list) != OK)
+static t_status	read_prompt_line(t_app *this, char **line, bool *interrupted)
+{
+	if (signals_install_prompt() != 0)
 		return (FAIL);
-	parse_outcome = parsing_facade_parse(&this->parsing_facade, line,
-			&cmd_list);
-	if (parse_outcome.has_error_req)
+	*line = readline("minishell$ ");
+	*interrupted = (signals_take() == SIGINT);
+	if (*interrupted)
 	{
-		error_report(&this->last_status, &parse_outcome.error);
-		if (parse_outcome.result == PARSE_SYNTAX_ERROR)
-			return (cmd_list.destroy(&cmd_list), OK);
+		free(*line);
+		*line = NULL;
+		this->last_status = 130;
 	}
-	if (parse_outcome.result == PARSE_FATAL_ERROR)
-	{
-		if (parse_outcome.has_error_req == false)
-			this->last_status = 1;
-		return (cmd_list.destroy(&cmd_list), FAIL);
-	}
-	if (this->executor.run(&this->executor, &cmd_list,
-			&this->last_status) != OK)
-		return (cmd_list.destroy(&cmd_list), FAIL);
-	cmd_list.destroy(&cmd_list);
 	return (OK);
+}
+
+static t_status	process_input_line(t_app *this, char *line)
+{
+	if (is_blank(line))
+		return (OK);
+	add_history(line);
+	return (process_line(this, line));
 }
 
 static t_status	run_impl(t_app *this)
 {
 	char	*line;
+	bool	interrupted;
 
 	while (1)
 	{
-		line = readline("minishell$ ");
-		if (!line)
+		if (read_prompt_line(this, &line, &interrupted) != OK)
+			return (FAIL);
+		if (interrupted)
+			continue ;
+		if (line == NULL)
 			break ;
-		if (is_blank(line) == false)
-		{
-			add_history(line);
-			if (process_line(this, line) != OK)
-				return (free(line), rl_clear_history(), FAIL);
-		}
+		if (process_input_line(this, line) != OK)
+			return (free(line), rl_clear_history(), FAIL);
 		free(line);
+		if (this->executor.exit_requested)
+			break ;
 	}
 	rl_clear_history();
 	return (OK);

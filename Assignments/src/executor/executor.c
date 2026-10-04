@@ -6,45 +6,53 @@
 /*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/30 10:10:00 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/09/13 16:28:13 by tg               ###   ########.fr       */
+/*   Updated: 2026/10/04 15:00:00 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "executor.h"
+#include "signals.h"
 #include "proc_mgr.h"
-#include "util.h"
 #include <stddef.h>
-#include <stdlib.h>
 
-static t_status	run_external(t_executor *this, t_cmd_list *cmd_list,
-		int *out_exit_status)
+int	executor_run_parent(t_executor *this, t_cmd *cmd, int *out_status);
+
+static t_status	run_external(t_executor *this, t_cmd_list *cmds,
+		int *out_status)
 {
-	char		**envp;
 	t_proc_mgr	proc_mgr;
 	t_status	status;
 
-	envp = this->env_list->to_envp(this->env_list);
-	if (envp == NULL)
+	if (proc_mgr_init(&proc_mgr, cmds, this->env_list, &this->built_in) != OK)
 		return (FAIL);
-	if (proc_mgr_init(&proc_mgr, cmd_list, envp, &this->built_in) != OK)
-		return (free_split(envp), FAIL);
-	status = proc_mgr.run(&proc_mgr, out_exit_status);
+	signals_ignore_execution();
+	status = proc_mgr.run(&proc_mgr, out_status);
+	signals_install_prompt();
 	proc_mgr.destroy(&proc_mgr);
-	free_split(envp);
 	return (status);
 }
 
-static t_status	run_impl(t_executor *this, t_cmd_list *cmd_list,
-		int *out_exit_status)
+static bool	run_in_parent(t_executor *this, t_cmd *cmd)
 {
-	if (cmd_list->head == NULL)
+	if (cmd->next != NULL)
+		return (false);
+	if (cmd->argv[0] == NULL)
+		return (cmd->redirs != NULL);
+	return (this->built_in.is_built_in(&this->built_in, cmd->argv[0]));
+}
+
+static t_status	run_impl(t_executor *this, t_cmd_list *cmds,
+		int *out_status)
+{
+	if (cmds->head == NULL)
 		return (OK);
-	if (cmd_list->head->next == NULL
-		&& this->built_in.is_built_in(&this->built_in,
-			cmd_list->head->argv[0]))
-		return (this->built_in.run(&this->built_in, cmd_list->head,
-				this->env_list, out_exit_status));
-	return (run_external(this, cmd_list, out_exit_status));
+	this->exit_requested = false;
+	if (run_in_parent(this, cmds->head))
+	{
+		*out_status = executor_run_parent(this, cmds->head, out_status);
+		return (OK);
+	}
+	return (run_external(this, cmds, out_status));
 }
 
 static void	destroy_impl(t_executor *this)

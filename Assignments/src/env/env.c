@@ -44,6 +44,8 @@ t_status	env_init(t_env *this, const char *key, const char *value)
 	this->value = ft_strdup(value);
 	if (this->value == NULL)
 		return (free(this->key), FAIL);
+	this->is_exported = true;
+	this->has_value = true;
 	this->next = NULL;
 	return (OK);
 }

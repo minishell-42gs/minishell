@@ -2,12 +2,13 @@
 
 ## 현재 구현 범위
 
-외부 명령의 단일/다단 파이프 실행을 지원한다. 아래 빌트인 시나리오는 연결
-인터페이스 설계이며, `built_in.c`의 개별 명령 구현은 아직 스텁이다.
-리다이렉션/히어독, 따옴표 제거, 변수 확장과 부모 셸의 대화형 시그널 처리는
-별도 작업이다. 따라서 [평가표](https://www.42evalhub.com/common/minishell)의
-파이프와 리다이렉션 혼합 항목은 해당 기능이 연결된 뒤 검증해야 한다.
-현재 `io_mgr`는 N-1개 파이프를 미리 만들므로 사용 가능한 FD 수의 제한을 받는다.
+실행기는 단독 builtin을 부모에서 실행하고, 외부 명령과 pipeline은 자식 프로세스로
+실행한다. pipeline FD 연결 후 각 명령의 redirection을 입력 순서로 적용한다.
+따옴표·변수 확장, 7개 builtin, 입력/출력/append redirection, heredoc, signal 처리는
+각각 [파싱·확장](Parsing-Expansion-Design.md), [builtin·환경](Builtins-Environment-Design.md),
+[redirection·heredoc](Redirection-Heredoc-Design.md), [signal](Signals-Design.md)
+설계 문서에 정리했다. io_mgr는 N-1개 파이프를 미리 만들므로 사용 가능한 FD 수의
+제한을 받는다. 검증 명령은 [필수 검증](Mandatory-Validation.md)을 참조한다.
 
 ## 1. 개요 및 설계 목표
 
@@ -140,17 +141,18 @@ $N$개의 명령어가 파이프로 연결되어 있을 때, 입출력 경계는
   * $0 < i < N - 1$: `in_fd = pipe[i-1][0]`, `out_fd = pipe[i][1]`
   * $i = N - 1$: `in_fd = pipe[N-2][0]`, `out_fd = STDOUT_FILENO`
   * $N = 1$ (단일 명령): `in_fd = STDIN_FILENO`, `out_fd = STDOUT_FILENO` (파이프 0개)
-* **확장성**:
-  * 추후 Heredoc(`<<`)이나 입력 리다이렉션(`<`)이 추가될 경우, 해당 명령어의 입력 채널(`Channel i`)에 파일 또는 히어독 fd를 주입하기만 하면 파이프라인 전체 흐름을 일관되게 유지할 수 있다.
+* **파이프와 redirection 결합**:
+  * Pipeline FD 연결 이후 redirection을 입력 순서대로 적용한다. 명령별 redirection이 기본 파이프 채널을 대체하며, 앞선 redirection의 파일 부수 효과는 유지된다.
 
 ---
 
 ## 5. 실행 시나리오 흐름
 
-### 시나리오 1: 단독 빌트인 (`cd`, `export`, `exit` 등, $N = 1$)
-1. `t_executor`가 명령어를 검사: `cmd_count == 1 && is_built_in(cmd)` 확인.
-2. `t_proc_mgr`를 거치지 않고, 부모 쉘에서 즉시 `t_built_in.run(cmd, executor.env_list)` 호출.
-3. 부모 쉘의 환경변수(`t_env_list`) 또는 작업 디렉토리가 즉시 갱신되며, 종료 코드 반환.
+### 시나리오 1: 단독 빌트인 또는 redirection-only 명령 ($N = 1$)
+1. t_executor가 단독 명령인지 확인한다. argv가 비어 있고 redirection이 있는 명령도 부모 경로로 보낸다.
+2. 부모 경로가 stdin/stdout을 저장하고 redirection을 입력 순서대로 적용한다.
+3. argv가 있으면 builtin을 실행해 환경/작업 디렉터리 변경을 보존한다. > file처럼 argv가 없으면 파일 작업만 수행한다.
+4. 실행이나 redirection이 실패해도 저장해둔 stdin/stdout을 복원하고 종료 상태를 반환한다.
 
 ### 시나리오 2: 단일 외부 명령어 (`ls -la`, $N = 1$)
 1. `t_executor`가 `t_proc_mgr`에 실행 위임.
@@ -171,12 +173,11 @@ $N$개의 명령어가 파이프로 연결되어 있을 때, 입출력 경계는
 5. 부모 프로세스: 모든 자식을 `waitpid()`하고, 마지막 명령어(`wc -l`)의 종료 코드를 최종 상태로 반환.
 6. `io_mgr.destroy()` 및 `proc_mgr.destroy()`로 일회성 자원 메모리 해제.
 
-### 시나리오 4: 파이프라인 속 빌트인 (`cat file | grep text | echo done`)
-1. 파이프라인 흐름(시나리오 3)과 동일하게 자식 프로세스들이 생성되고 입출력이 `dup2`로 연결됨.
-2. 마지막 자식 프로세스 내부에서 `is_built_in("echo")`가 감지됨.
-3. 자식 프로세스가 자신의 환경 스냅샷을 인자로 `t_built_in.run(cmd, proc_mgr.env_list)` 호출:
-   * 이미 `dup2`로 표준 입출력이 파이프로 연결되어 있으므로, 빌트인 함수는 별도 작업 없이 표준 출력으로 출력하면 자동으로 파이프 스트림을 탐.
-4. 실행 완료 후 `exit(status)`를 호출하여 자식 프로세스 종료.
+### 시나리오 4: 파이프라인 속 빌트인 (`echo alpha | cat | wc -c`)
+1. pipeline의 모든 명령을 자식 프로세스로 생성하고 stdin/stdout을 `dup2`로 연결한다.
+2. 첫 자식에서 `echo` builtin을 감지하고, 해당 명령의 확장 argv를 실행한다.
+3. `echo`의 stdout은 앞서 연결한 pipe이므로 텍스트가 `cat`을 거쳐 `wc`에 전달된다.
+4. 각 자식은 자신의 종료 상태로 종료하고, 부모는 마지막 명령의 상태를 pipeline 결과로 반환한다.
 
 ---
 

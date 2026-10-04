@@ -24,6 +24,8 @@ static t_status	change_env_value(t_env *env, const char *new_value)
 		return (FAIL);
 	free(env->value);
 	env->value = n_val;
+	env->is_exported = true;
+	env->has_value = true;
 	return (OK);
 }
 

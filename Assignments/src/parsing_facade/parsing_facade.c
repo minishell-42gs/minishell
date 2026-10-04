@@ -74,6 +74,8 @@ t_parse_outcome	parsing_facade_parse(t_parsing_facade *this, const char *line,
 	syntax_token = NULL;
 	if (lexer_run(&this->lexer, line, &token_list, &syntax_token) != OK)
 		return (lexer_error(&token_list, syntax_token));
+	if (token_list.head == NULL)
+		return (token_list.destroy(&token_list), outcome);
 	if (parser_run(&this->parser, token_list.head, cmd_list) != OK)
 	{
 		token_list.destroy(&token_list);

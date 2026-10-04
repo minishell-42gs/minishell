@@ -29,7 +29,7 @@ static void	destroy_impl(t_proc_mgr *this)
 }
 
 static t_status	init_members(t_proc_mgr *this, t_cmd_list *cmd_list,
-		char **envp, t_built_in *built_in)
+		t_env_list *env_source, t_built_in *built_in)
 {
 	t_cmd	*cmd;
 
@@ -47,7 +47,7 @@ static t_status	init_members(t_proc_mgr *this, t_cmd_list *cmd_list,
 	}
 	if (io_mgr_init(&this->io_mgr, this->cmd_count) != OK)
 		return (FAIL);
-	if (env_list_init(&this->env_list, envp) != OK)
+	if (env_list_clone(&this->env_list, env_source) != OK)
 		return (this->destroy(this), FAIL);
 	this->pids = ft_calloc(this->cmd_count, sizeof(pid_t));
 	if (this->pids == NULL)
@@ -74,10 +74,10 @@ static t_status	run_impl(t_proc_mgr *this, int *out_exit_status)
 }
 
 t_status	proc_mgr_init(t_proc_mgr *this, t_cmd_list *cmd_list,
-		char **envp, t_built_in *built_in)
+		t_env_list *env_source, t_built_in *built_in)
 {
 	if (this == NULL || cmd_list == NULL || cmd_list->head == NULL
-		|| envp == NULL || built_in == NULL)
+		|| env_source == NULL || built_in == NULL)
 		return (FAIL);
-	return (init_members(this, cmd_list, envp, built_in));
+	return (init_members(this, cmd_list, env_source, built_in));
 }

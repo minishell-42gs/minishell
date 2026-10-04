@@ -70,8 +70,15 @@ char	**env_list_to_envp_impl(t_env_list *this)
 
 	env = this->head;
 	envp = ft_calloc(1, sizeof(char *));
+	if (envp == NULL)
+		return (NULL);
 	while (env != NULL)
 	{
+		if (!env->is_exported || !env->has_value)
+		{
+			env = env->next;
+			continue ;
+		}
 		env_str = env_to_str(env);
 		if (env_str == NULL)
 			return (free_envp(envp), NULL);

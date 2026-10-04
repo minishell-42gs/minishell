@@ -15,6 +15,7 @@
 
 # include "status.h"
 # include "token.h"
+# include <stddef.h>
 
 typedef struct s_lexer	t_lexer;
 
@@ -29,6 +30,10 @@ t_status				lexer_init(t_lexer *this);
 /* internal */
 t_status				lexer_tokenize(const char *line,
 							t_token_list *token_list);
+t_status				lexer_validate_tokens(t_token *tokens,
+							const char **syntax_token);
+size_t					lexer_token_length(const char *cursor);
+t_token_type			lexer_classify_token_type(const char *value);
 t_status				lexer_check_syntax(const char *line,
 							const char **syntax_token);
 

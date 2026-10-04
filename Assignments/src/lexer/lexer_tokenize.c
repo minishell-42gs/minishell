@@ -16,39 +16,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-static t_token_type	classify_token_type(const char *str)
-{
-	if (str[0] == '|' && str[1] == '\0')
-		return (TOKEN_PIPE);
-	return (TOKEN_WORD);
-}
-
-static size_t	token_length(const char *cursor)
-{
-	size_t	length;
-	char	quote;
-
-	if (cursor[0] == '|' && cursor[1] != '|')
-		return (1);
-	quote = '\0';
-	length = 0;
-	while (cursor[length] != '\0')
-	{
-		if (quote == '\0'
-			&& (cursor[length] == '\'' || cursor[length] == '"'))
-			quote = cursor[length];
-		else if (quote == cursor[length])
-			quote = '\0';
-		else if (quote == '\0' && (is_space(cursor[length])
-				|| (cursor[length] == '|' && cursor[length + 1] != '|')))
-			break ;
-		if (quote == '\0' && cursor[length] == '|')
-			length++;
-		length++;
-	}
-	return (length);
-}
-
 static char	*slice_token(const char **cursor)
 {
 	size_t	length;
@@ -56,7 +23,7 @@ static char	*slice_token(const char **cursor)
 
 	if (cursor == NULL || *cursor == NULL || **cursor == '\0')
 		return (NULL);
-	length = token_length(*cursor);
+	length = lexer_token_length(*cursor);
 	value = ft_substr(*cursor, 0, length);
 	if (value == NULL)
 		return (NULL);
@@ -71,7 +38,7 @@ static t_status	append_token_list_value(t_token_list *token_list, char *value)
 	token = ft_calloc(1, sizeof(t_token));
 	if (token == NULL)
 		return (free(value), FAIL);
-	if (token_init(token, classify_token_type(value), value) != OK)
+	if (token_init(token, lexer_classify_token_type(value), value) != OK)
 		return (free(token), free(value), FAIL);
 	if (token_list_add_token(token_list, token) != OK)
 		return (token->destroy(token), free(token), FAIL);

@@ -11,23 +11,27 @@
 /* ************************************************************************** */
 
 #include "proc_mgr.h"
+#include "redirection.h"
 #include <stdlib.h>
 #include <unistd.h>
 
 void	proc_mgr_exec_builtin(t_proc_mgr *this, t_cmd *cmd)
 {
-	int	exit_status;
+	t_builtin_result	result;
 
-	exit_status = 1;
+	result.status = 1;
+	result.exit_requested = false;
 	if (this->built_in->run(this->built_in, cmd, &this->env_list,
-			&exit_status) == OK)
-		exit(exit_status);
+			&result) == OK)
+		exit(result.status);
 	exit(1);
 }
 
 void	proc_mgr_exec(t_proc_mgr *this, t_cmd *cmd, int in_fd,
 		int out_fd)
 {
+	int	redir_status;
+
 	signal(SIGINT, SIG_DFL);
 	signal(SIGQUIT, SIG_DFL);
 	signal(SIGPIPE, SIG_DFL);
@@ -42,6 +46,10 @@ void	proc_mgr_exec(t_proc_mgr *this, t_cmd *cmd, int in_fd,
 			exit(proc_mgr_error("dup2"));
 	}
 	this->io_mgr.close_all(&this->io_mgr);
+	if (redirection_apply(cmd, &redir_status) != OK)
+		exit(redir_status);
+	if (cmd->argv[0] == NULL)
+		exit(0);
 	if (this->built_in->is_built_in(this->built_in, cmd->argv[0]))
 		proc_mgr_exec_builtin(this, cmd);
 	else

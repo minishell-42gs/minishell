@@ -43,12 +43,14 @@ struct							s_redir
 struct							s_cmd
 {
 	char						**argv;
+	char						**raw_argv;
 	t_redir						*redirs;
 	t_cmd						*next;
 
 	void						(*destroy)(t_cmd *this);
 };
 t_status						cmd_append_argv(t_cmd *this, char *str);
+t_status						cmd_append_raw_argv(t_cmd *this, char *str);
 // argv:{NULL} , redirs:NULL, next:NULL
 t_status						cmd_init(t_cmd *this);
 

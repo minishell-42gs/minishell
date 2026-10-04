@@ -13,6 +13,7 @@
 #include "cmd.h"
 #include "error.h"
 #include "proc_mgr.h"
+#include "util.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -44,7 +45,7 @@ static int	is_directory(const char *path)
 	return (S_ISDIR(stat_buf.st_mode));
 }
 
-static void	exit_exec_error(char *path, int saved_errno)
+static void	exit_exec_error(char *path, char **envp, int saved_errno)
 {
 	t_error_req	req;
 	int			child_status;
@@ -54,6 +55,7 @@ static void	exit_exec_error(char *path, int saved_errno)
 	{.s_sys = {path, saved_errno}}};
 	error_report(&child_status, &req);
 	free(path);
+	free_split(envp);
 	exit(child_status);
 }
 
@@ -70,10 +72,13 @@ void	proc_mgr_exec_external(t_proc_mgr *this, t_cmd *cmd)
 		exit(1);
 	path = create_cmd_path(cmd->argv[0], envp);
 	if (path == NULL)
+	{
+		free_split(envp);
 		exit_not_found(cmd->argv[0]);
+	}
 	if (is_directory(path))
-		exit_exec_error(path, EISDIR);
+		exit_exec_error(path, envp, EISDIR);
 	execve(path, cmd->argv, envp);
 	saved_errno = errno;
-	exit_exec_error(path, saved_errno);
+	exit_exec_error(path, envp, saved_errno);
 }

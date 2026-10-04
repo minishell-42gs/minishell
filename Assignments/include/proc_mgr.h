@@ -37,7 +37,7 @@ struct						s_proc_mgr
 };
 
 t_status					proc_mgr_init(t_proc_mgr *this,
-								t_cmd_list *cmd_list, char **envp,
+								t_cmd_list *cmd_list, t_env_list *env_source,
 								t_built_in *built_in);
 
 /* internal */

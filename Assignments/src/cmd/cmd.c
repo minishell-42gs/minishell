@@ -15,6 +15,7 @@
 #include "util.h"
 #include <stddef.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 static void	destroy_all_redirs(t_redir *redirs)
 {
@@ -25,6 +26,8 @@ static void	destroy_all_redirs(t_redir *redirs)
 	while (redir != NULL)
 	{
 		temp = redir->next;
+		if (redir->hd_fd >= 0)
+			close(redir->hd_fd);
 		free(redir->target);
 		free(redir);
 		redir = temp;
@@ -35,6 +38,8 @@ static void	destroy_impl(t_cmd *this)
 {
 	if (this->argv != NULL)
 		free_split(this->argv);
+	if (this->raw_argv != NULL)
+		free_split(this->raw_argv);
 	if (this->redirs != NULL)
 		destroy_all_redirs(this->redirs);
 }
@@ -69,7 +74,36 @@ t_status	cmd_init(t_cmd *this)
 	this->argv = ft_calloc(1, sizeof(char *));
 	if (!this->argv)
 		return (FAIL);
+	this->raw_argv = ft_calloc(1, sizeof(char *));
+	if (!this->raw_argv)
+		return (free(this->argv), this->argv = NULL, FAIL);
 	this->redirs = NULL;
 	this->next = NULL;
+	return (OK);
+}
+
+t_status	cmd_append_raw_argv(t_cmd *this, char *str)
+{
+	char	**new_argv;
+	size_t	len;
+	size_t	i;
+
+	if (this == NULL || this->raw_argv == NULL || str == NULL)
+		return (FAIL);
+	len = 0;
+	while (this->raw_argv[len] != NULL)
+		len++;
+	new_argv = ft_calloc(len + 2, sizeof(char *));
+	if (new_argv == NULL)
+		return (FAIL);
+	i = 0;
+	while (i < len)
+	{
+		new_argv[i] = this->raw_argv[i];
+		i++;
+	}
+	new_argv[len] = str;
+	free(this->raw_argv);
+	this->raw_argv = new_argv;
 	return (OK);
 }

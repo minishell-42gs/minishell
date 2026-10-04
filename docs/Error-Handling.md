@@ -83,14 +83,14 @@ outcome = parsing_facade_parse(&app->parsing_facade, line, &cmd_list);
 if (outcome.has_error_req)
     error_report(&app->last_status, &outcome.error);
 if (outcome.result == PARSE_SYNTAX_ERROR)
-    continue_loop();
+    skip_current_line();
 if (outcome.result == PARSE_FATAL_ERROR)
-    stop_shell();
+    skip_current_line();
 ~~~
 
 현재 문법 오류는 `PARSE_SYNTAX_ERROR`와 `ERR_SYNTAX`, 상태 `2`를 함께 반환한다.
 내부 실패는 `PARSE_FATAL_ERROR`와 `ERR_INTERNAL`, 상태 `1`을 반환한다. app은
-fatal outcome에서만 루프를 끝낸다.
+fatal 입력도 현재 줄만 건너뛰고 app 입력 루프는 다음 프롬프트로 이어진다.
 
 ## error 모듈의 내부 구성
 
@@ -248,7 +248,7 @@ outcome.error = (t_error_req){ERR_INTERNAL, 1,
 | 단독 builtin | 부모의 `&app->last_status` | 필요한 경우 환경 변경 후 다음 프롬프트 또는 종료 |
 | pipeline 안의 external command | 자식의 `child_status` | 자식 fd/메모리 정리 후 `exit(child_status)` |
 | pipeline 안의 builtin | 자식의 `child_status` | 자식에서만 실행하고 `exit(child_status)` |
-| heredoc 수집 child | 수집 결과를 부모가 해석 | parent가 `130` 또는 이후 pipeline 상태를 결정 |
+| heredoc 수집 | 부모 프로세스가 입력을 모으고 취소/상태를 처리 | 취소는 130, 완료 후에는 pipeline 상태를 사용 |
 
 pipeline의 최종 `app->last_status`는 마지막 명령의 wait 상태여야 한다. 중간 자식의
 `error_report()` 호출은 해당 자식의 종료 코드만 정하고, 부모의 최종 상태를 직접

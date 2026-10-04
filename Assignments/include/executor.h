@@ -27,6 +27,7 @@ struct						s_executor
 {
 	t_env_list				*env_list;
 	t_built_in				built_in;
+	bool					exit_requested;
 
 	t_executor_run			run;
 	void					(*destroy)(t_executor *this);

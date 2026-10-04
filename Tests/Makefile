@@ -57,6 +57,10 @@ sanitize: $(SANITIZER_BINARIES)
 memory: $(TEST_BINARIES)
 	@$(TEST_RUNNER) --valgrind $(TEST_BINARIES)
 
+integration-signals:
+	@$(MAKE) -C ../Assignments
+	@timeout 15 python3 integration/test_signals.py
+
 integration:
 	@$(MAKE) -C ../Assignments
 	@$(INTEGRATION_RUNNER)
@@ -98,7 +102,7 @@ fclean: clean
 re: fclean all
 
 .PHONY: all test app cmd error lexer parser parsing_facade token util env executor io_mgr proc_mgr \
-	sanitize memory integration clean fclean re
+	sanitize memory integration integration-signals clean fclean re
 
 # Inject syscall failures only into the process lifecycle regression suite.
 build/proc_mgr/test_proc_mgr_failures build/sanitize/proc_mgr/test_proc_mgr_failures: \
