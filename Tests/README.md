@@ -5,7 +5,7 @@
 결과를 모아 보여 주고 테스트가 하나라도 실패하면 0이 아닌 종료 코드를 반환한다.
 
 현재 테스트 대상은 `Assignments/src/`의 `app`, `cmd`, `error`, `lexer`, `parser`,
-`parsing_facade`, `token`, `util` 모듈이다. `main.c`는 테스트 실행 파일과
+`parsing_facade`, `token`, `util`, `env`, `executor`, `io_mgr`, `proc_mgr` 모듈이다. `main.c`는 테스트 실행 파일과
 진입점이 충돌하므로 링크하지 않는다.
 
 ## 디렉터리 구조
@@ -140,3 +140,10 @@ TEST_ASSERT_NOT_NULL(token);
 
 새 테스트 파일을 `Tests/<module>/test_*.c` 형태로 추가하면 Makefile이 별도
 실행 파일로 자동 빌드한다.
+
+## 파이프 회귀 테스트
+
+`make -C Tests proc_mgr`는 파이프의 프로세스/FD 수명과 오류 경로를 검증한다.
+GNU linker의 `--wrap`을 이용하므로 Linux/GNU 도구 환경을 사용한다.
+`make -C Tests integration`은 GNU `timeout`으로 교착을 감지하며 실제 실행 결과를
+Bash와 비교한다. 리다이렉션, 개별 빌트인과 변수 확장은 별도 구현 대상이다.

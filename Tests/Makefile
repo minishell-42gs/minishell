@@ -10,7 +10,7 @@ INTEGRATION_RUNNER := integration/run_integration.sh
 TEST_SOURCES := $(wildcard app/test_*.c cmd/test_*.c error/test_*.c lexer/test_*.c \
 	parser/test_*.c parsing_facade/test_*.c token/test_*.c util/test_*.c)
 TEST_SOURCES += $(wildcard env/test_*.c)
-TEST_SOURCES += $(wildcard executor/test_*.c)
+TEST_SOURCES += $(wildcard executor/test_*.c proc_mgr/test_*.c)
 TEST_SOURCES += $(wildcard io_mgr/test_*.c)
 TEST_BINARIES := $(patsubst %.c,build/%,$(TEST_SOURCES))
 SANITIZER_BINARIES := $(patsubst %.c,build/sanitize/%,$(TEST_SOURCES))
@@ -45,9 +45,10 @@ token: $(filter build/token/%,$(TEST_BINARIES))
 util: $(filter build/util/%,$(TEST_BINARIES))
 env: $(filter build/env/%,$(TEST_BINARIES))
 executor: $(filter build/executor/%,$(TEST_BINARIES))
+proc_mgr: $(filter build/proc_mgr/%,$(TEST_BINARIES))
 io_mgr: $(filter build/io_mgr/%,$(TEST_BINARIES))
 
-app cmd error lexer parser parsing_facade token util env executor io_mgr:
+app cmd error lexer parser parsing_facade token util env executor io_mgr proc_mgr:
 	@$(TEST_RUNNER) $^
 
 sanitize: $(SANITIZER_BINARIES)
@@ -65,12 +66,12 @@ build/sanitize/%: %.c $(UNITY_SOURCE) $(SANITIZER_PRODUCTION_OBJECTS) \
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(SANITIZER_FLAGS) $(CPPFLAGS) \
 		$(UNITY_SOURCE) $< $(SANITIZER_PRODUCTION_OBJECTS) \
-		$(SANITIZER_LIBFT_OBJECTS) $(SANITIZER_FLAGS) $(LDLIBS) -o $@
+		$(SANITIZER_LIBFT_OBJECTS) $(SANITIZER_FLAGS) $(LDLIBS) $(TEST_LDFLAGS) -o $@
 
 build/%: %.c $(UNITY_SOURCE) $(PRODUCTION_OBJECTS) $(LIBFT_OBJECTS) $(HEADERS)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(UNITY_SOURCE) $< \
-		$(PRODUCTION_OBJECTS) $(LIBFT_OBJECTS) $(LDLIBS) -o $@
+		$(PRODUCTION_OBJECTS) $(LIBFT_OBJECTS) $(LDLIBS) $(TEST_LDFLAGS) -o $@
 
 build/obj/src/%.o: ../Assignments/src/%.c $(HEADERS)
 	@mkdir -p $(dir $@)
@@ -96,5 +97,9 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all test app cmd error lexer parser parsing_facade token util env executor io_mgr \
+.PHONY: all test app cmd error lexer parser parsing_facade token util env executor io_mgr proc_mgr \
 	sanitize memory integration clean fclean re
+
+# Inject syscall failures only into the process lifecycle regression suite.
+build/proc_mgr/test_proc_mgr_failures build/sanitize/proc_mgr/test_proc_mgr_failures: \
+	TEST_LDFLAGS := -Wl,--wrap=fork,--wrap=pipe,--wrap=waitpid,--wrap=dup2

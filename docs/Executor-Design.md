@@ -1,5 +1,14 @@
 # Minishell Executor Design
 
+## 현재 구현 범위
+
+외부 명령의 단일/다단 파이프 실행을 지원한다. 아래 빌트인 시나리오는 연결
+인터페이스 설계이며, `built_in.c`의 개별 명령 구현은 아직 스텁이다.
+리다이렉션/히어독, 따옴표 제거, 변수 확장과 부모 셸의 대화형 시그널 처리는
+별도 작업이다. 따라서 [평가표](https://www.42evalhub.com/common/minishell)의
+파이프와 리다이렉션 혼합 항목은 해당 기능이 연결된 뒤 검증해야 한다.
+현재 `io_mgr`는 N-1개 파이프를 미리 만들므로 사용 가능한 FD 수의 제한을 받는다.
+
 ## 1. 개요 및 설계 목표
 
 실행부(`executor`)의 핵심 목표는 파싱 결과물인 명령어 목록(`t_cmd_list`)을 전달받아,
@@ -182,6 +191,26 @@ $N$개의 명령어가 파이프로 연결되어 있을 때, 입출력 경계는
 | `src/executor/executor.c` | `t_executor` | 최상위 실행 엔트리포인트 및 실행 분기 |
 | `src/built_in/built_in.c` | `t_built_in` | 빌트인 판별·실행 인터페이스와 생명주기 |
 | `src/proc_mgr/proc_mgr.c` | `t_proc_mgr` | 프로세스 매니저 생성·소멸 및 `fork()` 흐름 |
-| `src/proc_mgr/proc_mgr_impl.c` | `t_proc_mgr` 내부 구현 | 자식 FD 연결, `waitpid()` 회수 및 실패 복구 |
+| `src/proc_mgr/proc_mgr_impl.c` | `t_proc_mgr` 내부 구현 | fork, 자식 FD 연결 및 시그널 초기화 |
+| `src/proc_mgr/proc_mgr_wait.c` | `t_proc_mgr` 내부 구현 | waitpid 회수, 종료 코드 변환 및 실패 복구 |
 | `src/proc_mgr/proc_mgr_exec_external.c` | `t_proc_mgr` 내부 구현 | 외부 명령 경로 탐색 및 `execve()` 실행 |
 | `src/io_mgr/io_mgr.c` | `t_io_mgr` | 명령별 FD 배분, 파이프 생성 및 전체 FD 회수 |
+
+
+## 7. 실패 처리와 검증
+
+- 모든 명령을 fork한 뒤에 대기하여 파이프 버퍼보다 큰 출력도 전달한다.
+- 자식은 SIGINT/SIGQUIT/SIGPIPE를 기본 동작으로 되돌리고, dup2 후 원본 파이프
+  FD를 `close_all()`에서 한 번씩 닫는다. 부모도 대기 전에 모든 파이프 FD를 닫는다.
+- waitpid가 EINTR이면 같은 PID로 재시도한다. 모든 자식을 회수한 뒤 마지막
+  명령의 종료 코드(시그널 종료는 128 + signal)를 반환한다.
+- fork 도중 실패하면 열린 파이프를 닫고 생성된 자식에 SIGKILL을 보내 회수한다.
+  자식이 입력이나 긴 작업을 기다리는 경우에도 정리가 멈추지 않도록 한다.
+- pipe/fork/dup2/waitpid 오류는 공통 error facade로 보고한다. 부모 측 실패는
+  FAIL을 반환하며 호출자의 종료 상태 out 파라미터를 보존한다.
+
+`make -C Tests proc_mgr`는 GNU linker의 `--wrap`으로 시스템 호출 실패와 EINTR을
+주입한다. 부분 fork/pipe 실패, dup2 실패, 시그널 종료, 반복 실행의 FD 수와
+자식 회수를 검증한다. 이 옵션은 테스트 바이너리에만 적용된다.
+`make -C Tests integration`은 실제 셸의 출력과 종료 코드를 Bash와 비교하며,
+대용량 출력과 조기 종료를 포함한다. 각 셸 실행은 GNU `timeout`으로 제한한다.

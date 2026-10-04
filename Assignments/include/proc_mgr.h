@@ -41,6 +41,7 @@ t_status					proc_mgr_init(t_proc_mgr *this,
 								t_built_in *built_in);
 
 /* internal */
+int							proc_mgr_error(const char *name);
 t_status					proc_mgr_fork_one(t_proc_mgr *this, t_cmd *cmd,
 								int index);
 t_status					proc_mgr_wait_all(t_proc_mgr *this, int child_count,

@@ -71,6 +71,7 @@ SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/io_mgr/io_mgr.c\
 		$(SRC_DIR)/proc_mgr/proc_mgr.c\
 		$(SRC_DIR)/proc_mgr/proc_mgr_impl.c\
+		$(SRC_DIR)/proc_mgr/proc_mgr_wait.c\
 		$(SRC_DIR)/proc_mgr/proc_mgr_exec_external.c\
 		$(SRC_DIR)/built_in/built_in.c
 OBJS := $(addprefix $(OBJ_DIR)/, $(SRCS:.c=.o))

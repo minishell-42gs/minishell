@@ -10,8 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#include "error.h"
 #include "io_mgr.h"
+#include "libft.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -68,22 +70,19 @@ static t_status	get_fds_impl(t_io_mgr *this, int index, int *in_fd,
 
 static t_status	create_all_pipes(t_io_mgr *this)
 {
-	int	i;
-	int	fds[2];
+	int			i;
+	int			fds[2];
+	t_error_req	req;
 
 	i = 0;
 	while (i < this->pipe_count)
 	{
 		if (pipe(fds) == -1)
 		{
-			while (i-- > 0)
-			{
-				close(this->pipes[i].read_fd);
-				close(this->pipes[i].write_fd);
-			}
-			free(this->pipes);
-			this->pipes = NULL;
-			this->pipe_count = 0;
+			req = (t_error_req){ERR_ERRNO, 1, {.s_sys = {"pipe", errno}}};
+			error_report(NULL, &req);
+			this->pipe_count = i;
+			destroy_impl(this);
 			return (FAIL);
 		}
 		this->pipes[i].read_fd = fds[0];

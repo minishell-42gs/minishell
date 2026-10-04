@@ -16,6 +16,7 @@ ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 MINISHELL="$ROOT/Assignments/minishell"
 PROMPT_PATTERN='^minishell\$'
 RUN_ENV=""
+TIMEOUT=$(command -v timeout) || exit 1
 
 if [ ! -x "$MINISHELL" ]; then
 	printf 'minishell binary not found: %s\n' "$MINISHELL" >&2
@@ -35,7 +36,7 @@ failed_names=""
 # 입력을 minishell 에 넣고 프롬프트 줄을 제거한 stdout, stderr, 종료 코드를 파일로 남긴다.
 run_minishell()
 {
-	printf '%b' "$1" | $RUN_ENV "$MINISHELL" >"$TMP/ms_raw" 2>"$TMP/ms_err"
+	printf '%b' "$1" | "$TIMEOUT" 10 $RUN_ENV "$MINISHELL" >"$TMP/ms_raw" 2>"$TMP/ms_err"
 	ms_status=$?
 	grep -v "$PROMPT_PATTERN" "$TMP/ms_raw" >"$TMP/ms_out"
 	ms_out=$(cat "$TMP/ms_out")
@@ -174,6 +175,26 @@ expect_shell_error 'PATH의 비실행 파일: Permission denied + 126' \
 RUN_ENV=""
 
 # ---------------------------------------------------------------------------
+
+# v4: 파이프 실행. timeout으로 교착도 테스트 실패로 처리한다.
+same_as_bash '2단 파이프' '/bin/echo alpha | wc -c\n'
+same_as_bash '3단 파이프' '/bin/echo alpha | cat | wc -c\n'
+same_as_bash '공백 없는 파이프' '/bin/echo alpha|cat|wc -c\n'
+same_as_bash '파일 읽기와 필터' 'cat Assignments/Makefile | grep SRC_DIR | wc -l\n'
+same_as_bash '대용량 스트림' 'seq 1 100000 | cat | wc -l\n'
+same_as_bash '일찍 닫히는 소비자' 'yes | head -n 1\n'
+same_as_bash '중간 소비자의 조기 종료' 'yes | head -n 1 | wc -c\n'
+same_as_bash '출력이 없는 생산자의 EOF' '/bin/true | cat | wc -c\n'
+same_as_bash '앞 명령 실패, 마지막 성공' '/bin/false | /bin/true\n'
+same_as_bash '마지막 명령 실패' '/bin/true | /bin/false\n'
+same_as_bash '없는 첫 명령' 'no_such_cmd_xyz | cat | wc -c\n'
+same_as_bash '없는 중간 명령' '/bin/echo alpha | no_such_cmd_xyz | wc -c\n'
+expect_not_found '없는 마지막 명령' '/bin/echo alpha | no_such_cmd_xyz\n'
+same_as_bash 'stderr는 파이프로 보내지 않음' 'ls /no_such_minishell_file | wc -c\n'
+same_as_bash '파이프 이후 셸 입력과 출력 유지' '/bin/echo alpha | wc -c\n/bin/echo omega\n'
+same_as_bash '마지막 프로세스가 먼저 종료' '/bin/sleep 0.1 | /bin/false\n'
+expect_status '선두 pipe 오류' '| cat\n' 2
+expect_status '연속 pipe 오류' 'cat | | wc\n' 2
 
 printf '\n========== INTEGRATION SUMMARY ==========\n'
 printf 'Cases : %d total, %d passed, %d failed\n' \

@@ -42,5 +42,8 @@ jobs:
       - name: make 확인
         run: make -C Assignments fclean && make -C Assignments
 
+      - name: 단위 테스트와 파이프 실패 경로
+        run: make -C Tests test
+
       - name: 통합 테스트
         run: make -C Tests integration
