@@ -250,6 +250,74 @@ expect_shell_error 'ambiguous redirection after field splitting' \
 expect_shell_error 'missing input redirection target' 'cat <\n' 2 \
 	'syntax error near unexpected token'
 
+# ---------------------------------------------------------------------------
+# v6: 평가표(evaluation scale) 항목 중 자동화 가능한 것.
+#     터미널이 필요한 시그널·히스토리는 MANUAL_CHECKLIST.md 에 있다.
+# ---------------------------------------------------------------------------
+
+# Environment path: PATH 는 왼쪽 디렉터리부터 탐색하고, unset 뒤에는 찾지 못한다.
+mkdir "$TMP/path_a" "$TMP/path_b"
+printf '#!/bin/sh\necho from-a\n' > "$TMP/path_a/which_dir"
+printf '#!/bin/sh\necho from-b\n' > "$TMP/path_b/which_dir"
+chmod 0755 "$TMP/path_a/which_dir" "$TMP/path_b/which_dir"
+RUN_ENV="env PATH=$TMP/path_a:$TMP/path_b"
+same_as_bash 'PATH 는 왼쪽 디렉터리부터 탐색' 'which_dir\n'
+RUN_ENV="env PATH=$TMP/path_b:$TMP/path_a"
+same_as_bash 'PATH 순서를 바꾸면 다른 디렉터리의 명령' 'which_dir\n'
+RUN_ENV=""
+expect_not_found 'unset PATH 뒤에는 명령을 찾지 못함' 'unset PATH\nls\n'
+same_as_bash 'unset PATH 뒤에도 직접 경로는 실행됨' 'unset PATH\n/bin/echo direct\n'
+
+# Relative path: .. 을 여러 번 거치는 상대 경로로 실행한다.
+same_as_bash '.. 이 섞인 상대 경로 실행' \
+	"cd $TMP\\n./path_a/../path_b/../path_a/which_dir\\n"
+
+# Return value of a process
+same_as_bash '외부 명령의 실패 코드가 $? 에 반영' \
+	'/bin/ls filethatdoesntexist\necho $?\n'
+same_as_bash '$? 를 산술 명령의 인자로 사용' '/bin/false\nexpr $? + $?\n'
+
+# Go Crazy: 교착·긴 인자·실패하는 파이프라인
+same_as_bash 'cat | cat | ls 는 stdin EOF 뒤 정상 종료' 'cat | cat | ls\n'
+same_as_bash 'ls 실패 | grep | more' 'ls filethatdoesntexist | grep bla | more\n'
+LONG_ARGS=$(seq -s ' ' 1 1000)
+same_as_bash '인자 1000개' "echo $LONG_ARGS\\n"
+
+# Double / Single quotes
+same_as_bash '큰따옴표 안 파이프·리다이렉션은 문자' 'echo "cat lol.c | cat > lol.c"\n'
+if [ -e "$ROOT/lol.c" ]; then
+	rm -f "$ROOT/lol.c"
+	fail '큰따옴표 안 리다이렉션은 파일을 만들지 않음' 'lol.c was created'
+else
+	pass '큰따옴표 안 리다이렉션은 파일을 만들지 않음'
+fi
+RUN_ENV="env USER=evaluator"
+same_as_bash '작은따옴표 안 $USER 는 확장되지 않음' "echo '\$USER'\\n"
+same_as_bash '큰따옴표 안 $USER 는 확장됨' 'echo "$USER"\n'
+same_as_bash '큰따옴표 안의 작은따옴표는 문자 (bonus surprise)' "echo \"'\$USER'\"\\n"
+same_as_bash '작은따옴표 안의 큰따옴표는 문자 (bonus surprise)' "echo '\"\$USER\"'\\n"
+
+# env / export
+same_as_bash 'env 는 현재 환경을 출력' 'env | grep ^USER=\n'
+same_as_bash 'export 는 기존 값을 덮어씀' \
+	'export MS_EVAL_VAR=1\nexport MS_EVAL_VAR=2\nenv | grep ^MS_EVAL_VAR=\n'
+RUN_ENV=""
+
+# echo (각각 단독 입력: -n 뒤에 다음 프롬프트가 같은 줄에 붙기 때문)
+same_as_bash 'echo 인자 없음' 'echo\n'
+same_as_bash 'echo -n 인자 없음' 'echo -n\n'
+same_as_bash 'echo -nnn 은 -n 으로 처리' 'echo -nnn a\n'
+same_as_bash 'echo -n -n 중복' 'echo -n -n a\n'
+same_as_bash 'echo 의 잘못된 옵션은 인자로 출력' 'echo -n -x b\n'
+
+# cd / pwd / exit
+same_as_bash 'cd . 과 cd .. 뒤의 pwd' 'cd .\npwd\ncd ..\npwd\n'
+same_as_bash 'pwd 는 cd 를 따라감' 'cd Tests\npwd\ncd integration\npwd\n'
+same_as_bash 'cd 실패는 1 을 반환하고 셸은 계속' \
+	'cd /nonexistent_minishell_dir\necho $?\n'
+expect_shell_error 'exit 에 숫자가 아닌 인자: 2 + 메시지' 'exit abc\n' 2 \
+	'numeric argument required'
+
 printf '\n========== INTEGRATION SUMMARY ==========\n'
 printf 'Cases : %d total, %d passed, %d failed\n' \
 	"$total" "$((total - failed))" "$failed"
