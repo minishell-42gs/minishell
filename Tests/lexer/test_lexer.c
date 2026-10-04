@@ -20,6 +20,40 @@ void	tearDown(void)
 	g_test_lexer.destroy(&g_test_lexer);
 }
 
+/* 구문 오류 토큰 문자열은 lexer가 토큰 리스트를 파괴한 뒤에도 유효해야 한다.
+ * 호출자(app)는 lexer_run이 FAIL을 돌려준 다음에 이 문자열로 메시지를 만든다.
+ * 토큰의 value를 그대로 가리키면 해제된 메모리를 읽는다 (sanitize 타깃에서 검출). */
+void	test_lexer_syntax_token_outlives_destroyed_tokens(void)
+{
+	const char	*syntax_token;
+
+	syntax_token = NULL;
+	TEST_ASSERT_EQUAL_INT(FAIL,
+		lexer_run(&g_test_lexer, "> > out", &g_test_token_list, &syntax_token));
+	TEST_ASSERT_NULL(g_test_token_list.head);
+	TEST_ASSERT_NOT_NULL(syntax_token);
+	TEST_ASSERT_EQUAL_STRING(">", syntax_token);
+}
+
+/* 연산자 종류마다 bash와 같은 토큰 문자열을 보고하는지 확인한다. */
+void	test_lexer_reports_each_operator_as_syntax_token(void)
+{
+	const char	*syntax_token;
+
+	TEST_ASSERT_EQUAL_INT(FAIL,
+		lexer_run(&g_test_lexer, "< <", &g_test_token_list, &syntax_token));
+	TEST_ASSERT_EQUAL_STRING("<", syntax_token);
+	TEST_ASSERT_EQUAL_INT(FAIL,
+		lexer_run(&g_test_lexer, ">> >>", &g_test_token_list, &syntax_token));
+	TEST_ASSERT_EQUAL_STRING(">>", syntax_token);
+	TEST_ASSERT_EQUAL_INT(FAIL,
+		lexer_run(&g_test_lexer, "<< <<", &g_test_token_list, &syntax_token));
+	TEST_ASSERT_EQUAL_STRING("<<", syntax_token);
+	TEST_ASSERT_EQUAL_INT(FAIL,
+		lexer_run(&g_test_lexer, "> | cat", &g_test_token_list, &syntax_token));
+	TEST_ASSERT_EQUAL_STRING("|", syntax_token);
+}
+
 /* 입력 전체가 하나의 단어 토큰으로 보존되는지 확인한다. */
 static void	assert_line_stays_one_word(const char *line)
 {
@@ -220,5 +254,7 @@ int	main(void)
 	RUN_TEST(test_lexer_keeps_double_pipe_after_a_command);
 	RUN_TEST(test_lexer_handles_empty_lines);
 	RUN_TEST(test_lexer_rejects_null_arguments);
+	RUN_TEST(test_lexer_syntax_token_outlives_destroyed_tokens);
+	RUN_TEST(test_lexer_reports_each_operator_as_syntax_token);
 	return (UNITY_END());
 }
