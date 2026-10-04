@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Norminette 설치
-        run: python3 -m pip install norminette==3.3.50
+        run: python3 -m pip install norminette==3.3.59
 
       - name: Norm 검사
         run: norminette Assignments
