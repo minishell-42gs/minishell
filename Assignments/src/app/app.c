@@ -56,9 +56,11 @@ static t_status	run_impl(t_app *this)
 			continue ;
 		if (line == NULL)
 			break ;
+		this->line = line;
 		if (process_input_line(this, line) != OK)
 			return (free(line), rl_clear_history(), FAIL);
 		free(line);
+		this->line = NULL;
 		if (this->executor.exit_requested)
 			break ;
 	}
@@ -80,6 +82,8 @@ t_status	app_init(t_app *this, char **envp)
 {
 	this->envp = envp;
 	this->last_status = 0;
+	this->line = NULL;
+	this->cmds = NULL;
 	this->run = run_impl;
 	this->destroy = destroy_impl;
 	if (env_list_init(&this->env_list, envp) != OK)
@@ -88,5 +92,7 @@ t_status	app_init(t_app *this, char **envp)
 		return (FAIL);
 	if (executor_init(&this->executor, &this->env_list) != OK)
 		return (FAIL);
+	this->executor.child_cleanup = app_child_cleanup;
+	this->executor.cleanup_ctx = this;
 	return (OK);
 }

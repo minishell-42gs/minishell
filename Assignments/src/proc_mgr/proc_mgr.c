@@ -38,6 +38,8 @@ static t_status	init_members(t_proc_mgr *this, t_cmd_list *cmd_list,
 	this->cmd_list = cmd_list;
 	this->pids = NULL;
 	this->built_in = built_in;
+	this->child_cleanup = NULL;
+	this->cleanup_ctx = NULL;
 	this->cmd_count = 0;
 	cmd = cmd_list->head;
 	while (cmd != NULL)

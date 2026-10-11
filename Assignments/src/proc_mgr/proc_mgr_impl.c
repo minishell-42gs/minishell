@@ -15,6 +15,18 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+/*
+ * Every child that does not reach execve ends here, so the memory it
+ * inherited from the parent is released before exit.
+ */
+void	proc_mgr_child_exit(t_proc_mgr *this, int status)
+{
+	this->destroy(this);
+	if (this->child_cleanup != NULL)
+		this->child_cleanup(this->cleanup_ctx);
+	exit(status);
+}
+
 void	proc_mgr_exec_builtin(t_proc_mgr *this, t_cmd *cmd)
 {
 	t_builtin_result	result;
@@ -22,9 +34,9 @@ void	proc_mgr_exec_builtin(t_proc_mgr *this, t_cmd *cmd)
 	result.status = 1;
 	result.exit_requested = false;
 	if (this->built_in->run(this->built_in, cmd, &this->env_list,
-			&result) == OK)
-		exit(result.status);
-	exit(1);
+			&result) != OK)
+		result.status = 1;
+	proc_mgr_child_exit(this, result.status);
 }
 
 void	proc_mgr_exec(t_proc_mgr *this, t_cmd *cmd, int in_fd,
@@ -35,21 +47,18 @@ void	proc_mgr_exec(t_proc_mgr *this, t_cmd *cmd, int in_fd,
 	signal(SIGINT, SIG_DFL);
 	signal(SIGQUIT, SIG_DFL);
 	signal(SIGPIPE, SIG_DFL);
-	if (in_fd != -1 && in_fd != STDIN_FILENO)
-	{
-		if (dup2(in_fd, STDIN_FILENO) == -1)
-			exit(proc_mgr_error("dup2"));
-	}
-	if (out_fd != -1 && out_fd != STDOUT_FILENO)
-	{
-		if (dup2(out_fd, STDOUT_FILENO) == -1)
-			exit(proc_mgr_error("dup2"));
-	}
+	if (in_fd != -1 && in_fd != STDIN_FILENO
+		&& dup2(in_fd, STDIN_FILENO) == -1)
+		proc_mgr_child_exit(this, proc_mgr_error("dup2"));
+	if (out_fd != -1 && out_fd != STDOUT_FILENO
+		&& dup2(out_fd, STDOUT_FILENO) == -1)
+		proc_mgr_child_exit(this, proc_mgr_error("dup2"));
 	this->io_mgr.close_all(&this->io_mgr);
 	if (redirection_apply(cmd, &redir_status) != OK)
-		exit(redir_status);
+		proc_mgr_child_exit(this, redir_status);
+	cmd_list_close_heredocs(this->cmd_list);
 	if (cmd->argv[0] == NULL)
-		exit(0);
+		proc_mgr_child_exit(this, 0);
 	if (this->built_in->is_built_in(this->built_in, cmd->argv[0]))
 		proc_mgr_exec_builtin(this, cmd);
 	else

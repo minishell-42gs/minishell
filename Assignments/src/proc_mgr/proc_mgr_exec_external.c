@@ -19,14 +19,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static void	exit_not_found(const char *name)
+static void	exit_not_found(t_proc_mgr *this, const char *name)
 {
 	t_error_req	req;
 	int			child_status;
 
 	req = (t_error_req){ERR_CMD_NOT_FOUND, 127, {.s_cmd_not_found = {name}}};
 	error_report(&child_status, &req);
-	exit(child_status);
+	proc_mgr_child_exit(this, child_status);
 }
 
 static int	exec_error_status(int saved_errno)
@@ -45,7 +45,8 @@ static int	is_directory(const char *path)
 	return (S_ISDIR(stat_buf.st_mode));
 }
 
-static void	exit_exec_error(char *path, char **envp, int saved_errno)
+static void	exit_exec_error(t_proc_mgr *this, char *path, char **envp,
+		int saved_errno)
 {
 	t_error_req	req;
 	int			child_status;
@@ -56,7 +57,7 @@ static void	exit_exec_error(char *path, char **envp, int saved_errno)
 	error_report(&child_status, &req);
 	free(path);
 	free_split(envp);
-	exit(child_status);
+	proc_mgr_child_exit(this, child_status);
 }
 
 void	proc_mgr_exec_external(t_proc_mgr *this, t_cmd *cmd)
@@ -66,19 +67,19 @@ void	proc_mgr_exec_external(t_proc_mgr *this, t_cmd *cmd)
 	int				saved_errno;
 
 	if (cmd->argv[0] == NULL)
-		exit(0);
+		proc_mgr_child_exit(this, 0);
 	envp = this->env_list.to_envp(&this->env_list);
 	if (envp == NULL)
-		exit(1);
+		proc_mgr_child_exit(this, 1);
 	path = create_cmd_path(cmd->argv[0], envp);
 	if (path == NULL)
 	{
 		free_split(envp);
-		exit_not_found(cmd->argv[0]);
+		exit_not_found(this, cmd->argv[0]);
 	}
 	if (is_directory(path))
-		exit_exec_error(path, envp, EISDIR);
+		exit_exec_error(this, path, envp, EISDIR);
 	execve(path, cmd->argv, envp);
 	saved_errno = errno;
-	exit_exec_error(path, envp, saved_errno);
+	exit_exec_error(this, path, envp, saved_errno);
 }

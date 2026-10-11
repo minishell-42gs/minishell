@@ -25,6 +25,8 @@ static t_status	run_external(t_executor *this, t_cmd_list *cmds,
 
 	if (proc_mgr_init(&proc_mgr, cmds, this->env_list, &this->built_in) != OK)
 		return (FAIL);
+	proc_mgr.child_cleanup = this->child_cleanup;
+	proc_mgr.cleanup_ctx = this->cleanup_ctx;
 	signals_ignore_execution();
 	status = proc_mgr.run(&proc_mgr, out_status);
 	signals_install_prompt();
@@ -72,5 +74,7 @@ t_status	executor_init(t_executor *this, t_env_list *env_list)
 	this->run = run_impl;
 	this->destroy = destroy_impl;
 	this->env_list = env_list;
+	this->child_cleanup = NULL;
+	this->cleanup_ctx = NULL;
 	return (OK);
 }

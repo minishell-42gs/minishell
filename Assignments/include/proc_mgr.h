@@ -31,6 +31,8 @@ struct						s_proc_mgr
 	t_cmd_list				*cmd_list;
 	int						cmd_count;
 	t_built_in				*built_in;
+	void					(*child_cleanup)(void *ctx);
+	void					*cleanup_ctx;
 
 	t_proc_mgr_run			run;
 	void					(*destroy)(t_proc_mgr *this);
@@ -52,5 +54,6 @@ void						proc_mgr_exec(t_proc_mgr *this, t_cmd *cmd,
 void						proc_mgr_exec_external(t_proc_mgr *this,
 								t_cmd *cmd);
 void						proc_mgr_exec_builtin(t_proc_mgr *this, t_cmd *cmd);
+void						proc_mgr_child_exit(t_proc_mgr *this, int status);
 
 #endif // PROC_MGR_H
