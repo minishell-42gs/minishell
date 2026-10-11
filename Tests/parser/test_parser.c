@@ -1,11 +1,11 @@
 #include "cmd.h"
+#include "libft.h"
 #include "parser.h"
 #include "token.h"
 #include "unity.h"
 #include <stdlib.h>
 
 static t_parser			g_test_parser;
-static t_token_factory	g_test_token_factory;
 static t_token_list		g_test_token_list;
 static t_cmd_list		g_test_cmd_list;
 
@@ -13,7 +13,6 @@ static t_cmd_list		g_test_cmd_list;
 void	setUp(void)
 {
 	TEST_ASSERT_EQUAL_INT(OK, parser_init(&g_test_parser));
-	TEST_ASSERT_EQUAL_INT(OK, token_factory_init(&g_test_token_factory));
 	TEST_ASSERT_EQUAL_INT(OK, token_list_init(&g_test_token_list));
 	TEST_ASSERT_EQUAL_INT(OK, cmd_list_init(&g_test_cmd_list));
 }
@@ -25,18 +24,29 @@ void	tearDown(void)
 		g_test_cmd_list.destroy(&g_test_cmd_list);
 	if (g_test_token_list.head != NULL)
 		g_test_token_list.destroy(&g_test_token_list);
-	g_test_token_factory.destroy(&g_test_token_factory);
 	g_test_parser.destroy(&g_test_parser);
 }
 
-/* 단어 토큰을 생성해 parser 입력 리스트에 등록한다. */
+/* parser 입력용 단어 토큰을 fixture 리스트에 등록한다. */
 static void	append_word_token(const char *value)
 {
 	t_token		*token;
+	char		*value_copy;
 	t_status	status;
 
-	token = token_factory_create(&g_test_token_factory, value);
+	value_copy = ft_strdup(value);
+	TEST_ASSERT_NOT_NULL_MESSAGE(value_copy, "value allocation failed");
+	token = ft_calloc(1, sizeof(t_token));
+	if (token == NULL)
+		free(value_copy);
 	TEST_ASSERT_NOT_NULL_MESSAGE(token, "token allocation failed");
+	status = token_init(token, TOKEN_WORD, value_copy);
+	if (status != OK)
+	{
+		free(token);
+		free(value_copy);
+	}
+	TEST_ASSERT_EQUAL_INT(OK, status);
 	status = token_list_add_token(&g_test_token_list, token);
 	if (status != OK)
 	{

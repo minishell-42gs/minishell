@@ -1,0 +1,47 @@
+name: Close Issues on Story Merge
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  close-linked-issues:
+    # 실제로 머지되었고, 대상 브랜치가 정확히 story일 때만 실행
+    if: >
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'story'
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Close issues referenced by PR body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+
+          issue_numbers="$(
+            printf '%s\n' "$PR_BODY" |
+            perl -ne '
+              while (/\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s*:?\s*#([0-9]+)\b/ig) {
+                print "$1\n";
+              }
+            ' |
+            sort -un
+          )"
+
+          if [ -z "$issue_numbers" ]; then
+            echo "No issue-closing keyword found in the PR body."
+            exit 0
+          fi
+
+          while IFS= read -r issue_number; do
+            gh issue close "$issue_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --reason completed \
+              --comment "Closed automatically via PR merge to \`$BASE_BRANCH\`."
+          done <<< "$issue_numbers"

@@ -29,4 +29,13 @@ t_status				parser_run(t_parser *this, t_token *tokens_head,
 							t_cmd_list *cmd_list);
 t_status				parser_init(t_parser *this);
 
+/* Internal parser helpers */
+bool					parser_is_redirection(t_token_type type);
+t_status				parser_add_redir(t_cmd *cmd, t_token *operator,
+							t_token *target);
+t_cmd					*parser_new_cmd(void);
+t_status				parser_append_cmd(t_cmd_list *list, t_cmd *cmd);
+t_status				parser_build(t_token *tokens, t_cmd_list *cmd_list);
+t_status				parser_add_word(t_cmd *cmd, const char *value);
+
 #endif // PARSER_H

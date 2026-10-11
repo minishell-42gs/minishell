@@ -1,0 +1,37 @@
+# readline 과 terminfo 내부 할당은 과제가 허용하는 누수다.
+# 사용: valgrind --suppressions=Tests/integration/readline.supp ./Assignments/minishell
+{
+	readline_library
+	Memcheck:Leak
+	match-leak-kinds: all
+	...
+	obj:*/libreadline.so*
+}
+{
+	tinfo_library
+	Memcheck:Leak
+	match-leak-kinds: all
+	...
+	obj:*/libtinfo.so*
+}
+{
+	readline_entry
+	Memcheck:Leak
+	match-leak-kinds: all
+	...
+	fun:readline
+}
+{
+	add_history_entry
+	Memcheck:Leak
+	match-leak-kinds: all
+	...
+	fun:add_history
+}
+{
+	readline_internal
+	Memcheck:Leak
+	match-leak-kinds: all
+	...
+	fun:rl_*
+}

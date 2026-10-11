@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   is_blank.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hyuckwon <hyuckwon@student.42gyeongsan.    +#+  +:+       +#+        */
+/*   By: tg <tg@student.42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/02 15:30:00 by hyuckwon          #+#    #+#             */
-/*   Updated: 2026/08/02 17:08:09 by hyuckwon         ###   ########.fr       */
+/*   Updated: 2026/09/13 11:48:11 by tg               ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "util.h"
 #include <stddef.h>
 
-static bool	is_space(char c)
+bool	is_space(char c)
 {
 	return (c == ' ' || (c >= '\t' && c <= '\r'));
 }
