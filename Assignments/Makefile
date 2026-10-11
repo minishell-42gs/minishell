@@ -41,6 +41,7 @@ HEADERS := $(addprefix $(INCS_DIR)/, $(addsuffix .h, $(MODULES)))
 SRCS := $(SRC_DIR)/main.c\
 		$(SRC_DIR)/app/app.c\
 		$(SRC_DIR)/app/app_line.c\
+		$(SRC_DIR)/app/app_child.c\
 		$(SRC_DIR)/app/signals.c\
 		$(SRC_DIR)/cmd/cmd_factory.c\
 		$(SRC_DIR)/cmd/cmd_list.c\

@@ -14,6 +14,7 @@
 #include "util.h"
 #include <stddef.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 static void	destroy_all_cmds(t_cmd *head)
 {
@@ -52,6 +53,26 @@ t_status	cmd_list_add_cmd(t_cmd_list *this, t_cmd *new_node)
 		cmd = cmd->next;
 	cmd->next = new_node;
 	return (OK);
+}
+
+void	cmd_list_close_heredocs(t_cmd_list *this)
+{
+	t_cmd	*cmd;
+	t_redir	*redir;
+
+	cmd = this->head;
+	while (cmd != NULL)
+	{
+		redir = cmd->redirs;
+		while (redir != NULL)
+		{
+			if (redir->hd_fd >= 0)
+				close(redir->hd_fd);
+			redir->hd_fd = -1;
+			redir = redir->next;
+		}
+		cmd = cmd->next;
+	}
 }
 
 t_status	cmd_list_init(t_cmd_list *this)

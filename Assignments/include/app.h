@@ -27,11 +27,14 @@ struct					s_app
 
 	char				**envp;
 	int					last_status;
+	char				*line;
+	t_cmd_list			*cmds;
 
 	t_status			(*run)(t_app * this);
 	void				(*destroy)(t_app *this);
 };
 
 t_status				app_init(t_app *this, char **envp);
+void					app_child_cleanup(void *ctx);
 
 #endif

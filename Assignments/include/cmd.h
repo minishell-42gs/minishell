@@ -63,6 +63,8 @@ struct							s_cmd_list
 t_status						cmd_list_add_cmd(t_cmd_list *this,
 									t_cmd *new_node);
 t_status						cmd_list_init(t_cmd_list *this);
+// Closes every heredoc fd still held by the commands in the list.
+void							cmd_list_close_heredocs(t_cmd_list *this);
 
 struct							s_cmd_factory
 {

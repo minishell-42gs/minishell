@@ -28,6 +28,8 @@ struct						s_executor
 	t_env_list				*env_list;
 	t_built_in				built_in;
 	bool					exit_requested;
+	void					(*child_cleanup)(void *ctx);
+	void					*cleanup_ctx;
 
 	t_executor_run			run;
 	void					(*destroy)(t_executor *this);

@@ -82,6 +82,7 @@ t_status	process_line(t_app *this, const char *line)
 
 	if (cmd_list_init(&cmds) != OK)
 		return (FAIL);
+	this->cmds = &cmds;
 	should_run = true;
 	status = parse_command(this, line, &cmds, &should_run);
 	if (status == OK && should_run)
@@ -91,5 +92,6 @@ t_status	process_line(t_app *this, const char *line)
 	if (status == OK && should_run)
 		execute_command(this, &cmds);
 	cmds.destroy(&cmds);
+	this->cmds = NULL;
 	return (status);
 }
