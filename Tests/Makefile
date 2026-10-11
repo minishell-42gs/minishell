@@ -65,6 +65,10 @@ integration:
 	@$(MAKE) -C ../Assignments
 	@$(INTEGRATION_RUNNER)
 
+integration-memory:
+	@$(MAKE) -C ../Assignments
+	@integration/run_valgrind.sh
+
 build/sanitize/%: %.c $(UNITY_SOURCE) $(SANITIZER_PRODUCTION_OBJECTS) \
 		$(SANITIZER_LIBFT_OBJECTS) $(HEADERS)
 	@mkdir -p $(dir $@)
@@ -101,7 +105,7 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all test app cmd error lexer parser parsing_facade token util env executor io_mgr proc_mgr \
+.PHONY: all test integration-memory app cmd error lexer parser parsing_facade token util env executor io_mgr proc_mgr \
 	sanitize memory integration integration-signals clean fclean re
 
 # Inject syscall failures only into the process lifecycle regression suite.

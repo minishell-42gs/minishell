@@ -30,6 +30,7 @@ The program links against GNU Readline. Run the test suites with:
 make -C Tests test
 make -C Tests integration
 make -C Tests integration-signals
+make -C Tests integration-memory
 make -C Tests sanitize
 make -C Tests memory
 ```

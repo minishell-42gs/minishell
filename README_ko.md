@@ -30,6 +30,7 @@ GNU Readline을 사용합니다. 테스트는 다음 명령으로 실행할 수 
 make -C Tests test
 make -C Tests integration
 make -C Tests integration-signals
+make -C Tests integration-memory
 make -C Tests sanitize
 make -C Tests memory
 ~~~
