@@ -1,4 +1,4 @@
-*이 프로젝트는 42 교육과정의 일부로 ringo와 taegokim이 작성했습니다.*
+*이 프로젝트는 42 교육과정의 일부로 hyuckwon과 taegokim이 작성했습니다.*
 
 [영문 README](README.md)
 

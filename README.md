@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by ringo, taegokim.*
+*This project has been created as part of the 42 curriculum by hyuckwon, taegokim.*
 
 # Minishell
 
